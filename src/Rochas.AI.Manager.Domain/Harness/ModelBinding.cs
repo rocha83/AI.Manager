@@ -18,4 +18,10 @@ public sealed class ModelBinding : BaseEntity
     public string Thinking { get; set; } = "off";
     [Column("temperature")]
     public double Temperature { get; set; } = 0.5;
+    /// <summary>
+    /// Modelo legado: nao emite tool_calls nativo e narra a chamada no texto.
+    /// Liga a coercao (extrai a call do proprio content) neste cadastro.
+    /// </summary>
+    [Column("uses_tool_coercion")]
+    public bool UsesToolCoercion { get; set; }
 }

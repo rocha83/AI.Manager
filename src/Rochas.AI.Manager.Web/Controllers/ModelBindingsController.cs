@@ -10,9 +10,9 @@ public sealed class ModelBindingsController(IModelBindingService svc) : Controll
     public async Task<IActionResult> Index(CancellationToken ct) => View(await svc.ListAsync(ct));
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(string provider, string modelId, CancellationToken ct)
+    public async Task<IActionResult> Create(string provider, string modelId, bool usesToolCoercion, CancellationToken ct)
     {
-        await svc.CreateAsync(provider, modelId, 4096, 32768, "off", 0.5, ct);
+        await svc.CreateAsync(provider, modelId, 4096, 32768, "off", 0.5, usesToolCoercion, ct);
         return RedirectToAction("Index");
     }
 }

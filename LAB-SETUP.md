@@ -131,6 +131,19 @@ O Exec é **só GPU2** (como Plan/Build/Orch são só GPU1). O Scripter **valida
 genérico `llama/gemma-4-e2b` cai no `--thinking events` da unit e abre reasoning
 — use o `-exec` para manter determinismo.
 
+#### 1.3.0 Enunciados x lógica x cadastro
+
+| natureza | onde mora | exemplo |
+|---|---|---|
+| **enunciado** (texto) | `HarnessAttachment`: `Core`, `Nucleo`, `Behavior`, `ToolsUsage`, `Tools` (catálogo) | regra de workspace, formato Unicode/LaTeX, "como chamar tool" |
+| **lógica** (programa) | motor `Rochas.AI.Manager.Bridge` + `BridgeOptions` | anti-repeat (janela 256, retry, detecção), máquina de estados do `<think>`, hold-back de tag |
+| **cadastro** (por modelo) | `ModelBinding` / `Agent` | "Utiliza coerção de tools" (`UsesToolCoercion`), temperatura, thinking, contexto |
+
+O motor não guarda texto de enunciado como fonte da verdade: `HarnessTails` é só
+fallback. `BridgeOptionsFactory.FromModel` combina o cadastro do modelo com os
+anexos do perfil, então o mesmo motor atende modelo nativo (coerção off) e
+legado (coerção on) sem código condicional espalhado.
+
 #### 1.3.1 Permissão de subagente (`subagent`) por role
 
 Regra: **toda role primária delega (`subagent`) exceto `Exec`**. No payload

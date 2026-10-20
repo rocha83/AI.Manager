@@ -30,4 +30,8 @@
   <ItemGroup>
     <Content Include="..\..\assets\gemma-trainer\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\gemma-trainer" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge\Rochas.AI.Manager.Bridge.csproj" />
+  </ItemGroup>
+
 </Project>

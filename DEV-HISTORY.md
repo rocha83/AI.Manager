@@ -1,3 +1,28 @@
+## feat(bridge-engine): motor de protocolo no AI.Manager (tradução, stream, anti-repeat) e flag de coerção no cadastro do modelo
+
+- Date: 2026-10-20
+
+- Novo projeto `Rochas.AI.Manager.Bridge` (sem ASP.NET): `ResponsesToChat`
+  (input/tools/caudas), `ChatToResponses` (reasoning nativo + message +
+  function_call), `ResponsesStreamTranslator` (SSE com `reasoning_text.delta`,
+  `streamPerDelta`, hold-back de tag partida), `ResponsesSse` (síntese a partir
+  do JSON), `AntiRepeat` (janela/retry/assinatura de tool), `ControlTags`,
+  `ToolCallTextExtractor` (tag/plural/fence/ângulo/narrado) e `HarnessTails`.
+- **Enunciado é dado**: `HarnessAttachment` ganhou as peças `Behavior`
+  (workspace/formato) e `ToolsUsage` (como chamar tool), semeadas pelo
+  `BridgeFeatureSeeder` e lidas por `HarnessContentProvider`;
+  `BridgeOptionsFactory.FromContent` só cai no default quando não há dado.
+  O behavior saiu do `harness-system.md` (Core) para não duplicar no prompt.
+- **Anti-repeat é lógica, não dado**: janela, retry, detecção e aviso ficam no
+  motor (`BridgeOptions`), sem anexo semeado.
+- **Coerção por modelo**: `ModelBinding.UsesToolCoercion`
+  (coluna `uses_tool_coercion`, migration no `AppDb`), exposto na API
+  (`ModelBindingsCreate/UpdateRequest`) e no cadastro Web ("Utiliza coerção de
+  tools"); `BridgeOptionsFactory.FromModel` mapeia o flag para `CoerceNarrated`.
+- Testes: 93 aprovados, 1 ignorado — tradução request/response, tools/pattern,
+  stream (ordem, hold-back, granularidade, function_call), anti-repeat,
+  factory (dado vence default; coerção vem do cadastro).
+
 ## unify(binding-bridge): um único caminho de encaminhamento e endpoint resolvido pelo agente
 
 - Date: 2026-10-20

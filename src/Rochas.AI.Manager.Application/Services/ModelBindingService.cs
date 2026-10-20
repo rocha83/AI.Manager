@@ -11,7 +11,7 @@ public sealed class ModelBindingService(
     private readonly IGenericRepository<ModelBinding> _repo = repo;
     private readonly IPersistenceRepository<ModelBinding> _write = write;
 
-    public async Task<int> CreateAsync(string provider, string modelId, int maxTokens, int contextWindow, string thinking, double temperature, CancellationToken ct = default)
+    public async Task<int> CreateAsync(string provider, string modelId, int maxTokens, int contextWindow, string thinking, double temperature, bool usesToolCoercion = false, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(provider)) throw new ArgumentException("Provider is required.", nameof(provider));
         if (string.IsNullOrWhiteSpace(modelId)) throw new ArgumentException("ModelId is required.", nameof(modelId));
@@ -22,7 +22,8 @@ public sealed class ModelBindingService(
             MaxTokens = maxTokens <= 0 ? 4096 : maxTokens,
             ContextWindow = contextWindow <= 0 ? 32768 : contextWindow,
             Thinking = string.IsNullOrWhiteSpace(thinking) ? "off" : thinking.Trim(),
-            Temperature = temperature < 0 ? 0.5 : temperature
+            Temperature = temperature < 0 ? 0.5 : temperature,
+            UsesToolCoercion = usesToolCoercion
         };
         await _write.Add(b);
         return b.Id;
@@ -36,7 +37,7 @@ public sealed class ModelBindingService(
         return list.OrderBy(b => b.Provider).ThenBy(b => b.ModelId).ToList();
     }
 
-    public async Task UpdateAsync(int id, int maxTokens, int contextWindow, string thinking, double temperature, CancellationToken ct = default)
+    public async Task UpdateAsync(int id, int maxTokens, int contextWindow, string thinking, double temperature, bool usesToolCoercion = false, CancellationToken ct = default)
     {
         var b = await GetAsync(id, ct) ?? throw new KeyNotFoundException($"ModelBinding {id} not found.");
         var old = new ModelBinding(); foreach (var p in typeof(ModelBinding).GetProperties()) p.SetValue(old, p.GetValue(b));
@@ -44,6 +45,7 @@ public sealed class ModelBindingService(
         b.ContextWindow = contextWindow <= 0 ? b.ContextWindow : contextWindow;
         b.Thinking = string.IsNullOrWhiteSpace(thinking) ? b.Thinking : thinking.Trim();
         b.Temperature = temperature < 0 ? b.Temperature : temperature;
+        b.UsesToolCoercion = usesToolCoercion;
         await _write.Update(b, old);
     }
 

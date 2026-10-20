@@ -1,4 +1,5 @@
 using Rochas.AI.Manager.Application.Helpers;
+using Rochas.AI.Manager.Bridge;
 using Rochas.AI.Manager.Domain.Entities;
 using Rochas.AI.Manager.Domain.Experiments;
 using Rochas.AI.Manager.Domain.Harness;
@@ -47,11 +48,11 @@ public static class BridgeFeatureSeeder
         var existingBindings = await bindingRepository.Query(new ModelBinding());
         if (!existingBindings.Any(binding => binding.ModelId == "gemma-4-12b"))
         {
-            await bindingRepository.Add(new ModelBinding { Name = "Gemma4 12B (bridge GPU)", Provider = "openai", ModelId = "gemma-4-12b", MaxTokens = 32768, ContextWindow = 163840, Thinking = "on", Temperature = 0.5 });
+            await bindingRepository.Add(new ModelBinding { Name = "Gemma4 12B (bridge GPU)", Provider = "openai", ModelId = "gemma-4-12b", MaxTokens = 32768, ContextWindow = 163840, Thinking = "on", Temperature = 0.5, UsesToolCoercion = false });
         }
         if (!existingBindings.Any(binding => binding.ModelId == "gemma-4-e2b"))
         {
-            await bindingRepository.Add(new ModelBinding { Name = "Gemma4 E2B (bridge CPU)", Provider = "llama", ModelId = "gemma-4-e2b", MaxTokens = 16384, ContextWindow = 65536, Thinking = "off", Temperature = 0.3 });
+            await bindingRepository.Add(new ModelBinding { Name = "Gemma4 E2B (bridge CPU)", Provider = "llama", ModelId = "gemma-4-e2b", MaxTokens = 16384, ContextWindow = 65536, Thinking = "off", Temperature = 0.3, UsesToolCoercion = false });
         }
 
         // Agent (6 roles)
@@ -148,6 +149,11 @@ public static class BridgeFeatureSeeder
             await SyncAttachment("Core", systemPrompt);
             await SyncAttachment("Tools", ReadResource("Rochas.AI.Manager.Web.Data.harness-tools.json"));
             await SyncAttachment("Nucleo", ReadResource("Rochas.AI.Manager.Web.Data.harness-nucleo.md"));
+            // Caudas: ENUNCIADO e dado (complemento do system prompt). O texto
+            // canonico mora no banco; o literal do motor e so fallback. O
+            // anti-repeat NAO entra aqui: e logica do motor, nao texto.
+            await SyncAttachment("Behavior", HarnessTails.Behavior);
+            await SyncAttachment("ToolsUsage", HarnessTails.Tools);
         }
 
         // ToolPolicy por role
