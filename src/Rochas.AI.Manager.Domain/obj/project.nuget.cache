@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "QN/rIeiofRA=",
+  "dgSpecHash": "mfDHDpjN/C8=",
   "success": true,
-  "projectFilePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj",
+  "projectFilePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj",
   "expectedPackageFiles": [
     "/home/mint/.nuget/packages/rochas.data.specification/1.6.3/rochas.data.specification.1.6.3.nupkg.sha512"
   ],

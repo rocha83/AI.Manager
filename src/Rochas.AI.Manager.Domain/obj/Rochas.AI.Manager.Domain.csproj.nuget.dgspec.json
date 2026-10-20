@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj": {}
+    "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj": {}
   },
   "projects": {
-    "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj": {
+    "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj",
+        "projectUniqueName": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj",
         "projectName": "Rochas.AI.Manager.Domain",
-        "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj",
+        "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj",
         "packagesPath": "/home/mint/.nuget/packages/",
-        "outputPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/obj/",
+        "outputPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/mint/.nuget/NuGet/NuGet.Config"

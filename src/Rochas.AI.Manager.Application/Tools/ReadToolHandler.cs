@@ -18,6 +18,22 @@ public sealed class ReadToolHandler : IToolHandler
         ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif"
     };
 
+    private static readonly HashSet<string> AudioExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".wav", ".mp3", ".ogg", ".flac", ".m4a", ".aac", ".webm"
+    };
+
+    private static readonly Dictionary<string, string> AudioMimeTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [".wav"] = "audio/wav",
+        [".mp3"] = "audio/mpeg",
+        [".ogg"] = "audio/ogg",
+        [".flac"] = "audio/flac",
+        [".m4a"] = "audio/mp4",
+        [".aac"] = "audio/aac",
+        [".webm"] = "audio/webm"
+    };
+
     private static readonly Dictionary<string, string> MimeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         [".jpg"] = "image/jpeg",
@@ -58,9 +74,17 @@ public sealed class ReadToolHandler : IToolHandler
             {
                 return ReadImage(full);
             }
+            else if (IsAudio(full))
+            {
+                return ReadAudio(full);
+            }
             else if (ext == ".pdf")
             {
                 return ReadPdf(full);
+            }
+            else if (ext == ".docx" || ext == ".doc")
+            {
+                return ReadDocument(full);
             }
             else
             {
@@ -132,6 +156,52 @@ public sealed class ReadToolHandler : IToolHandler
         {
             return ToolResult.Fail($"falha ao ler PDF '{path}': {ex.Message}");
         }
+    }
+
+
+    private static bool IsAudio(string path)
+    {
+        string ext = Path.GetExtension(path).ToLowerInvariant();
+        return AudioExtensions.Contains(ext);
+    }
+
+    private ToolResult ReadAudio(string path)
+    {
+        try
+        {
+            var info = new FileInfo(path);
+            if (info.Length > MaxImageBytes)
+                return ToolResult.Fail($"audio grande demais ({info.Length} bytes, teto {MaxImageBytes})");
+
+            byte[] bytes = File.ReadAllBytes(path);
+            string base64 = Convert.ToBase64String(bytes);
+            string mime = AudioMimeTypes.TryGetValue(Path.GetExtension(path).ToLowerInvariant(), out string? mimeType) ? mimeType ?? "application/octet-stream" : "application/octet-stream";
+            string dataUrl = $"data:{mime};base64,{base64}";
+
+            var content = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["type"] = "input_audio",
+                    ["input_audio"] = new JsonObject
+                    {
+                        ["data"] = base64,
+                        ["format"] = Path.GetExtension(path).TrimStart('.').ToLowerInvariant()
+                    }
+                }
+            };
+
+            return ToolResult.Ok($"{{\"multimodal\":true,\"content\":{content.ToJsonString()}}}");
+        }
+        catch (Exception ex)
+        {
+            return ToolResult.Fail($"falha ao ler audio '{path}': {ex.Message}");
+        }
+    }
+
+    private ToolResult ReadDocument(string path)
+    {
+        return ToolResult.Fail("Documentos .doc/.docx: extração de texto não implementada (requer OpenXml). Converta para .txt ou .md.");
     }
 
     private static int ClampInt(int value, int min, int max) => Math.Min(Math.Max(value, min), max);

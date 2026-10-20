@@ -4245,11 +4245,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/tests/Rochas.AI.Manager.Tests/Rochas.AI.Manager.Tests.csproj",
+      "projectUniqueName": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/tests/Rochas.AI.Manager.Tests/Rochas.AI.Manager.Tests.csproj",
       "projectName": "Rochas.AI.Manager.Tests",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/tests/Rochas.AI.Manager.Tests/Rochas.AI.Manager.Tests.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/tests/Rochas.AI.Manager.Tests/Rochas.AI.Manager.Tests.csproj",
       "packagesPath": "/home/mint/.nuget/packages/",
-      "outputPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/tests/Rochas.AI.Manager.Tests/obj/",
+      "outputPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/tests/Rochas.AI.Manager.Tests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/mint/.nuget/NuGet/NuGet.Config"
@@ -4265,17 +4265,17 @@
           "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
-            "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Application/Rochas.AI.Manager.Application.csproj": {
-              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Application/Rochas.AI.Manager.Application.csproj"
+            "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Application/Rochas.AI.Manager.Application.csproj": {
+              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Application/Rochas.AI.Manager.Application.csproj"
             },
-            "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj": {
-              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj"
+            "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj": {
+              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj"
             },
-            "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Infrastructure/Rochas.AI.Manager.Infrastructure.csproj": {
-              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Infrastructure/Rochas.AI.Manager.Infrastructure.csproj"
+            "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Infrastructure/Rochas.AI.Manager.Infrastructure.csproj": {
+              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Infrastructure/Rochas.AI.Manager.Infrastructure.csproj"
             },
-            "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.TrainingEngine/Rochas.AI.Manager.TrainingEngine.csproj": {
-              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.TrainingEngine/Rochas.AI.Manager.TrainingEngine.csproj"
+            "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.TrainingEngine/Rochas.AI.Manager.TrainingEngine.csproj": {
+              "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.TrainingEngine/Rochas.AI.Manager.TrainingEngine.csproj"
             }
           }
         }
