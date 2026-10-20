@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Rochas.AI.Manager.Domain/1.0.0": {
+        "dependencies": {
+          "Rochas.Data.Specification": "1.6.3"
+        },
+        "runtime": {
+          "Rochas.AI.Manager.Domain.dll": {}
+        }
+      },
+      "Rochas.Data.Specification/1.6.3": {
+        "runtime": {
+          "lib/netstandard2.1/Rochas.Data.Specification.dll": {
+            "assemblyVersion": "1.6.3.0",
+            "fileVersion": "1.6.3.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Rochas.AI.Manager.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Rochas.Data.Specification/1.6.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-D0Ah3uQKyWZ5uFwBMqH3kvEhiBCkOi34O9jgnZCYlL+M9lXawheR0wBquLMpaZU5/CTioDqv4iD22l4n05tJ/A==",
+      "path": "rochas.data.specification/1.6.3",
+      "hashPath": "rochas.data.specification.1.6.3.nupkg.sha512"
+    }
+  }
+}
