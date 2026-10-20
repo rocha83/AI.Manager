@@ -131,6 +131,54 @@ O Exec é **só GPU2** (como Plan/Build/Orch são só GPU1). O Scripter **valida
 genérico `llama/gemma-4-e2b` cai no `--thinking events` da unit e abre reasoning
 — use o `-exec` para manter determinismo.
 
+#### 1.3.1 Permissão de subagente (`task`) por role
+
+Regra: **toda role primária delega (`subagent`) exceto `Exec`**. A permissão é
+do **cliente opencode** (frontmatter do agent), portanto vale em qualquer modo —
+inclusive standalone, onde a bridge é só repasse e não opina em tool. Se o
+frontmatter não declarar o bloco `permissions`, o default do opencode barra a
+chamada com *"acesso negado a subagent"* justamente no modo Plan (que é o que
+mais delega).
+
+`plan.md`, `build.md`, `orch.md`, `moe.md`, `scripter.md`:
+
+```yaml
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: allow
+```
+
+`exec.md` (única exceção — o E2B executa scripts, não orquestra):
+
+```yaml
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
+```
+
+Regras:
+
+1. `resource: "*"` no `subagent` — restringir a um nome (`"plan"`, `"build-exec"`)
+   faz a chamada a qualquer outro agente virar negação silenciosa.
+2. O bloco `permissions` **substitui** o default: se ele existe, todo verbo não
+   listado e não coberto por `"*"` fica negado. Em `plan.md` o `"*" -> deny` no
+   topo é intencional (nega escrita/execução) e a lista seguinte reabre só
+   leitura/web/subagente — não acrescente `write`/`edit`/`shell` ali para
+   "consertar" delegação.
+3. Espelhar a mesma alteração em `remaster-fix/agents/*.md` (o live remaster e o
+   `~/.config/opencode/agents/` são cópias independentes; divergir gera o bug só
+   na ISO).
+4. A bridge **não** participa: `ToolBlacklist` (`--tool-blacklist`) não tem
+   `subagent`/`task` e, em passthrough, não interfere na resolução de tools.
+
 ---
 
 ## 2. Servidores llama (GPU full, 12 GB, TurboQuant)
