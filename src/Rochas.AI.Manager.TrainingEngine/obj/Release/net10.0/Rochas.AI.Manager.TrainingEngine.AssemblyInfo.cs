@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Rochas.AI.Manager.TrainingEngine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98e28bc0ac5103ad7f289daebc43d71edc6c14ce")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c91412a2ef6f43c1b4f958ea55155badd8a3a635")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rochas.AI.Manager.TrainingEngine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rochas.AI.Manager.TrainingEngine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

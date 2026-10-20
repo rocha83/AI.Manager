@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Rochas.AI.Manager.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e48f08ed0bb28a3816817b2accb885754909eb95")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c91412a2ef6f43c1b4f958ea55155badd8a3a635")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rochas.AI.Manager.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rochas.AI.Manager.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

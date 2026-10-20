@@ -67,6 +67,7 @@
             </div>
           </li>
           <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-info float-end" id="send">ENVIAR</button>
+          <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary float-end me-2" id="micBtn" title="Gravar audio">🎤</button>
         </ul>
 
       </div>
@@ -1495,5 +1496,48 @@ document.getElementById('compactBtn').onclick = async () => {
     updateCtxDonut();
   } catch { showToast('Falha ao compactar.', 'danger'); }
 };
+
+// --- Captura de audio via microfone HTML5 ---
+let mediaRecorder = null;
+let audioChunks = [];
+const micBtn = document.getElementById('micBtn');
+if (micBtn) {
+  micBtn.addEventListener('click', async () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      micBtn.textContent = '🎤';
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Preferir formato menor disponivel
+      const mimes = ['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/webm','audio/ogg'];
+      const mime = mimes.find(m => MediaRecorder.isTypeSupported(m)) || '';
+      mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const b64 = (reader.result || '').toString().split(',')[1];
+          if (!b64) return;
+          // Anexa ao prompt como marcador multimodal
+          const ta = document.getElementById('prompt');
+          const tag = '\n[audio base64 ' + (mediaRecorder.mimeType || 'audio/webm') + '] ' + b64.slice(0, 64) + '...';
+          ta.value = (ta.value || '') + tag;
+          try { Tracer.info('mic', 'audio capturado', { size: blob.size, mime: mediaRecorder.mimeType }); } catch {}
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      micBtn.textContent = '⏹';
+    } catch (e) {
+      try { Tracer.error('mic', 'falha ao acessar microfone', { err: String(e) }); } catch {}
+      alert('Microfone indisponivel: ' + e);
+    }
+  });
+}
 </script>
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Rochas.AI.Manager.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8a3cd8aa35895b66fbc854a1293b827d2c178d66")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c91412a2ef6f43c1b4f958ea55155badd8a3a635")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rochas.AI.Manager.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rochas.AI.Manager.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7DjAGLQphZQ=",
+  "dgSpecHash": "Y2bzbbq+2Ls=",
   "success": true,
-  "projectFilePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+  "projectFilePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
   "expectedPackageFiles": [
     "/home/mint/.nuget/packages/closedxml/0.102.3/closedxml.0.102.3.nupkg.sha512",
     "/home/mint/.nuget/packages/dapper/2.1.89/dapper.2.1.89.nupkg.sha512",
@@ -112,9 +112,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "O pacote 'Newtonsoft.Json' 9.0.1 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-5crp-9r3c-p9vr",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "Newtonsoft.Json",
       "targetGraphs": [
         "net10.0"
@@ -124,9 +124,9 @@
       "code": "NU1902",
       "level": "Warning",
       "message": "O pacote 'SixLabors.ImageSharp' 2.1.13 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-gwg2-r3hj-4w44",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net10.0"
@@ -136,9 +136,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "O pacote 'SixLabors.ImageSharp' 2.1.13 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-j3p4-wp97-rph4",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net10.0"
@@ -148,9 +148,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "O pacote 'SixLabors.ImageSharp' 2.1.13 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-j9gm-c75j-xc9q",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net10.0"
@@ -160,9 +160,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "O pacote 'SixLabors.ImageSharp' 2.1.13 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-jjfr-hcj7-qf5w",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net10.0"
@@ -172,9 +172,9 @@
       "code": "NU1902",
       "level": "Warning",
       "message": "O pacote 'SixLabors.ImageSharp' 2.1.13 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-wmxv-xphr-5c9g",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net10.0"
@@ -184,9 +184,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "O pacote 'System.IO.Packaging' 6.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-f32c-w444-8ppv",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "System.IO.Packaging",
       "targetGraphs": [
         "net10.0"
@@ -196,9 +196,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "O pacote 'System.IO.Packaging' 6.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-qj66-m88j-hmgj",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "System.IO.Packaging",
       "targetGraphs": [
         "net10.0"
@@ -208,9 +208,9 @@
       "code": "NU1902",
       "level": "Warning",
       "message": "O pacote 'System.Security.Cryptography.Pkcs' 9.0.18 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-2fmv-rv2c-59x7",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "System.Security.Cryptography.Pkcs",
       "targetGraphs": [
         "net10.0"
@@ -220,9 +220,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "O pacote 'System.Security.Cryptography.Pkcs' 9.0.18 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-846f-f764-76mx",
-      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "projectPath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "warningLevel": 1,
-      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/OpenCodeBridge/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
+      "filePath": "/media/mint/3686C649614854E61/Projetos/Git/AI.Manager/src/Rochas.AI.Manager.Web/Rochas.AI.Manager.Web.csproj",
       "libraryId": "System.Security.Cryptography.Pkcs",
       "targetGraphs": [
         "net10.0"
