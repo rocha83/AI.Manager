@@ -124,16 +124,18 @@ Além do sufixo, `--thinking-off-roles Build,Scripter,Exec` força thinking off 
 | `moe.md` | `openai/gemma-4-12b-moe` | 0.8 |
 | `scripter.md` | `openai/gemma-4-12b-scripter` | 0.3 |
 | `exec.md` | `llama/gemma-4-e2b-exec` | 0.3 |
-| subagente `task` | `llama/gemma-4-e2b-exec` | 0.3 |
+| subagente `subagent` (nome antigo: `task`) | `llama/gemma-4-e2b-exec` | 0.3 |
 
 O Exec é **só GPU2** (como Plan/Build/Orch são só GPU1). O Scripter **valida**
 (`bash -n`) sem executar; o Exec **executa** (`bash <arquivo>`). Subagente
 genérico `llama/gemma-4-e2b` cai no `--thinking events` da unit e abre reasoning
 — use o `-exec` para manter determinismo.
 
-#### 1.3.1 Permissão de subagente (`task`) por role
+#### 1.3.1 Permissão de subagente (`subagent`) por role
 
-Regra: **toda role primária delega (`subagent`) exceto `Exec`**. A permissão é
+Regra: **toda role primária delega (`subagent`) exceto `Exec`**. No payload
+Responses do opencode 2.x a tool chega como `subagent` (o antigo `task` não
+existe mais no array; conferido no dump `trace` da sonda). A permissão é
 do **cliente opencode** (frontmatter do agent), portanto vale em qualquer modo —
 inclusive standalone, onde a bridge é só repasse e não opina em tool. Se o
 frontmatter não declarar o bloco `permissions`, o default do opencode barra a
