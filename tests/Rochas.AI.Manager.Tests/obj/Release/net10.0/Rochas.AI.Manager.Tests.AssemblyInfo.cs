@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Rochas.AI.Manager.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+143e578e316b38d0cbacc4366da7d9e874d5b5db")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e2b17a0936a6ee305af0db7cfb254be62a49a810")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rochas.AI.Manager.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rochas.AI.Manager.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

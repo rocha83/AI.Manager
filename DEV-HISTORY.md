@@ -1,3 +1,23 @@
+## unify(binding-bridge): um único caminho de encaminhamento e endpoint resolvido pelo agente
+
+- Date: 2026-10-20
+
+- `BindingBridgeController`: as rotas `chat/completions` e `responses` duplicavam
+  todo o encaminhamento (auth, binding, stream, run). Agora as duas delegam a
+  `ForwardAsync(path, body, sanitizeChat)`; a resolução do endpoint saiu do
+  hardcode `localhost:4124/4125` para `Agent.BridgeUrl` → `ModelBinding.Provider`
+  → `Bridge:GpuUrl`/`Bridge:CpuUrl` (`appsettings`), com `Bridge:ApiKey`.
+- `ReasoningSanitizer.SanitizeResponses`: tira tags de controle
+  (`<|channel>`, `<thought>`, ...) do `content[].text`/`summary[].text` do item
+  `reasoning`, preservando o shape nativo (`reasoning_text` + `item.content`);
+  aplicado na rota `responses` não-stream (antes não havia nenhuma limpeza).
+- Seeder (enunciados): `task` → `subagent` em `Agent.Tools`, `ToolPolicy` e nos
+  prompts `harness-system.md`/`harness-nucleo.md`; `subagent` liberado em
+  plan/build/orch/moe/scripter e negado em exec; behavior tail
+  (workspace/formato) incorporado ao `harness-system.md`.
+- Testes: 70 aprovados, 1 ignorado (pré-existente); `ReasoningControlTagTests`
+  cobre strip de tags e preservação da mensagem.
+
 ## 9ccd377 - feat(ai-manager): vertical slice harness profiles (in-memory service + linter + MVC/AJAX UI)
 
 - Commit: 9ccd3776b11adb05f3e1b9309adbe6406a524a9d

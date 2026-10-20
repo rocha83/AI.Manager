@@ -178,6 +178,24 @@ Regras:
 3. Espelhar a mesma alteração em `remaster-fix/agents/*.md` (o live remaster e o
    `~/.config/opencode/agents/` são cópias independentes; divergir gera o bug só
    na ISO).
+#### 1.3.2 Enunciados de role ficam no seeder (não na bridge)
+
+Papéis e o que o prompt de cada role carrega são **dados da plataforma**, não
+código da bridge. O `BridgeFeatureSeeder` (`src/Rochas.AI.Manager.Web/Data/`)
+semeia:
+
+| artefato | conteúdo |
+|---|---|
+| `Agent.Tools` / `ToolPolicy.Allow/Deny` | CSV de tools por role; `subagent` em plan/build/orch/moe/scripter, negado em exec (`Deny = "subagent"`) |
+| `harness-system.md` (attachment `Core`) | AGENTS.md global: delegação por `subagent` (nunca `task`), tails de role e o behavior de workspace/formato |
+| `harness-nucleo.md` (attachment `Nucleo`) | disciplina por tool + tails por role |
+| `harness-tools.json` (attachment `Tools`) | catálogo de tools (schema Responses) |
+
+O behavior tail (workspace um nível abaixo + Unicode/LaTeX só em bloco) é
+**enunciado**: mora no seeder e é herdado por qualquer cliente. A bridge só o
+aplica em runtime quando recebe `--harness-behavior-tail`/`harnessBehaviorTail`;
+o texto canônico é o do `harness-system.md` do seeder.
+
 4. A bridge **não** filtra tools: `ToolBlacklist` (`--tool-blacklist`) não tem
    `subagent`/`task`, e `ToolsToChat` só converte o schema (Responses → chat),
    preservando todos os itens do array. O único corte é o de chaves `pattern`

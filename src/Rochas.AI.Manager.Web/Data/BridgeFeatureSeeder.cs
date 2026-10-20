@@ -57,11 +57,11 @@ public static class BridgeFeatureSeeder
         var existingAgents = await agentRepository.Query(new Agent());
         var agentDefinitions = new (string Name, string Model, string BridgeUrl, double Temperature, string Thinking, string Mode, string Tools)[]
         {
-            ("plan", "openai/gemma-4-12b", "http://localhost:4124", 0.5, "on", "Plan", "read,grep,glob,question"),
-            ("build", "openai/gemma-4-12b", "http://localhost:4124", 0.5, "on", "Build", "read,write,edit,glob,grep,shell,execute,task"),
-            ("orch", "openai/gemma-4-12b", "http://localhost:4124", 0.5, "on", "Orch", "task,read,grep"),
-            ("moe", "openai/gemma-4-12b", "http://localhost:4124", 0.8, "on", "MoE", "read,write,edit,glob,grep,shell"),
-            ("scripter", "openai/gemma-4-12b", "http://localhost:4124", 0.3, "on", "Scripter", "read,write,edit,glob,grep"),
+            ("plan", "openai/gemma-4-12b", "http://localhost:4124", 0.5, "on", "Plan", "read,grep,glob,question,subagent"),
+            ("build", "openai/gemma-4-12b", "http://localhost:4124", 0.5, "on", "Build", "read,write,edit,glob,grep,shell,execute,subagent"),
+            ("orch", "openai/gemma-4-12b", "http://localhost:4124", 0.5, "on", "Orch", "subagent,read,grep"),
+            ("moe", "openai/gemma-4-12b", "http://localhost:4124", 0.8, "on", "MoE", "read,write,edit,glob,grep,shell,subagent"),
+            ("scripter", "openai/gemma-4-12b", "http://localhost:4124", 0.3, "on", "Scripter", "read,write,edit,glob,grep,subagent"),
             ("exec", "llama/gemma-4-e2b", "http://localhost:4125", 0.3, "off", "Exec", "read,write,edit,glob,grep,shell,execute"),
         };
         foreach (var (agentName, model, bridgeUrl, temperature, thinking, mode, tools) in agentDefinitions)
@@ -130,12 +130,12 @@ public static class BridgeFeatureSeeder
         var existingPolicies = await policyRepository.Query(new ToolPolicy());
         var policyDefinitions = new (string Role, string Allow, string Deny, bool RequireCall, int MaxTurns, int StallLimit)[]
         {
-            ("build", "read,write,edit,glob,grep,shell,execute,task", "websearch", false, 20, 3),
-            ("plan", "read,grep,glob,question", "write,edit,shell", false, 10, 3),
-            ("orch", "task,read,grep", "write,edit,shell", true, 15, 3),
-            ("moe", "read,write,edit,glob,grep,shell", "websearch", false, 20, 3),
-            ("scripter", "read,write,edit,glob,grep", "shell,execute", false, 10, 3),
-            ("exec", "read,write,edit,glob,grep,shell,execute", "", false, 10, 3),
+            ("build", "read,write,edit,glob,grep,shell,execute,subagent", "websearch", false, 20, 3),
+            ("plan", "read,grep,glob,question,subagent", "write,edit,shell", false, 10, 3),
+            ("orch", "subagent,read,grep", "write,edit,shell", true, 15, 3),
+            ("moe", "read,write,edit,glob,grep,shell,subagent", "websearch", false, 20, 3),
+            ("scripter", "read,write,edit,glob,grep,subagent", "shell,execute", false, 10, 3),
+            ("exec", "read,write,edit,glob,grep,shell,execute", "subagent", false, 10, 3),
         };
         foreach (var (role, allow, deny, requireCall, maxTurns, stallLimit) in policyDefinitions)
         {

@@ -17,7 +17,7 @@ DISCIPLINA POR TOOL (do catalogo opencode):
 - shell: timeout/background; prefira tools dedicadas; quote paths com espacos.
 - write: apenas para arquivo NOVO; mudancas parciais -> edit.
 - execute: Code Mode; await calls; independentes via Promise.all; sem import/export.
-- subagent (task): foreground/background; sessionID para continuar; micro-enunciado completo no prompt.
+- subagent: foreground/background; sessionID para continuar; micro-enunciado completo no prompt.
 - question: esclarecer ambiguidade (apenas interativo).
 - glob/grep: localizar arquivos/simbodos antes de editar.
 - webfetch/websearch: info externa alem do cutoff.
@@ -25,7 +25,7 @@ DISCIPLINA POR TOOL (do catalogo opencode):
 TAILS POR ROLE:
 - plan: elucide o pedido e fatie em micro-enunciados autocontidos (OBJETIVO+ESCOPO+PROIBIDO+ACEITE).
 - build: implemente diretamente os artefatos; conclua com build/teste verdes e evidencia.
-- orch: delegue micro-enunciados ao subagente via task; agregue e re-execute o ACEITE; enunciado ambiguo -> refatie em dois menores.
+- orch: delegue micro-enunciados ao subagente via subagent; agregue e re-execute o ACEITE; enunciado ambiguo -> refatie em dois menores.
 - exec: leia script+companion; valide sintaxe (bash -n); execute; reporte saida completa; nao crie arquivos novos.
 - scripter: um script por tarefa, bash puro; companion .md; valide sintaxe; nao execute.
 - generalista (moe): atenda qualquer dominio com profundidade sob demanda, sem enrolacao.

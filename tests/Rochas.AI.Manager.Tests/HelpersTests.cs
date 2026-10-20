@@ -80,3 +80,34 @@ public class ReasoningSanitizerTests
         Assert.Equal(text, ReasoningSanitizer.Sanitize(text));
     }
 }
+public class ReasoningControlTagTests
+{
+    [Fact]
+    public void StripControlTags_RemoveTagsDeControle()
+    {
+        Assert.Equal("pensando", ReasoningSanitizer.StripControlTags("<|channel>pensando<thought></thought>"));
+    }
+
+    [Fact]
+    public void SanitizeResponses_LimpaSoReasoningEPreservaShapeNativo()
+    {
+        var json = "{\"output\":[" +
+                   "{\"type\":\"reasoning\",\"summary\":[],\"content\":[{\"text\":\"<|channel>raciocinio</thought>\"}]}," +
+                   "{\"type\":\"message\",\"content\":[{\"type\":\"output_text\",\"text\":\"<thought>texto do usuario</thought>\"}]}]}";
+
+        var root = JsonNode.Parse(ReasoningSanitizer.SanitizeResponses(json))!.AsObject();
+
+        var reasoning = root["output"]![0]!.AsObject();
+        Assert.Equal("raciocinio", reasoning["content"]![0]!["text"]!.GetValue<string>());
+        Assert.Empty(reasoning["summary"]!.AsArray());
+        // Mensagem do usuario/assistente nao e tocada: so o reasoning e limpo.
+        Assert.Equal("<thought>texto do usuario</thought>",
+            root["output"]![1]!["content"]![0]!["text"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void SanitizeResponses_JsonInvalido_DevolveEntrada()
+    {
+        Assert.Equal("nao-json", ReasoningSanitizer.SanitizeResponses("nao-json"));
+    }
+}
