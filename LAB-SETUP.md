@@ -191,6 +191,11 @@ semeia:
 | `harness-nucleo.md` (attachment `Nucleo`) | disciplina por tool + tails por role |
 | `harness-tools.json` (attachment `Tools`) | catálogo de tools (schema Responses) |
 
+O seeder é idempotente e **sincronizante**: no boot ele reconcilia `Tools`/
+`ToolPolicy` (token legado `task` → `subagent`, `subagent` presente só em quem
+delega) e regrava `Core`/`Tools`/`Nucleo` quando o recurso embutido mudou — um
+banco já semeado recebe o enunciado novo sem precisar ser recriado.
+
 O behavior tail (workspace um nível abaixo + Unicode/LaTeX só em bloco) é
 **enunciado**: mora no seeder e é herdado por qualquer cliente. A bridge só o
 aplica em runtime quando recebe `--harness-behavior-tail`/`harnessBehaviorTail`;

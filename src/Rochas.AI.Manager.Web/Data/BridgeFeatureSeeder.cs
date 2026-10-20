@@ -1,3 +1,4 @@
+using Rochas.AI.Manager.Application.Helpers;
 using Rochas.AI.Manager.Domain.Entities;
 using Rochas.AI.Manager.Domain.Experiments;
 using Rochas.AI.Manager.Domain.Harness;
@@ -66,8 +67,20 @@ public static class BridgeFeatureSeeder
         };
         foreach (var (agentName, model, bridgeUrl, temperature, thinking, mode, tools) in agentDefinitions)
         {
-            if (existingAgents.Any(agent => agent.Name == agentName)) continue;
-            await agentRepository.Add(new Agent { Name = agentName, Model = model, BridgeUrl = bridgeUrl, Temperature = temperature, Thinking = thinking, Mode = mode, Tools = tools });
+            var existing = existingAgents.FirstOrDefault(agent => agent.Name == agentName);
+            if (existing is null)
+            {
+                await agentRepository.Add(new Agent { Name = agentName, Model = model, BridgeUrl = bridgeUrl, Temperature = temperature, Thinking = thinking, Mode = mode, Tools = tools });
+                continue;
+            }
+            // Seed e fonte da verdade do enunciado: migra o token legado `task`
+            // e garante `subagent` nas roles que delegam.
+            var synced = ToolListNormalizer.Normalize(existing.Tools, tools, agentName != "exec");
+            if (synced == existing.Tools) continue;
+            var oldAgent = new Agent();
+            foreach (var property in typeof(Agent).GetProperties()) property.SetValue(oldAgent, property.GetValue(existing));
+            existing.Tools = synced;
+            await agentRepository.Update(existing, oldAgent);
         }
 
         // HarnessProfile
@@ -99,9 +112,9 @@ public static class BridgeFeatureSeeder
             versionId = version.Id;
         }
 
-        // Attachment (system prompt core completo)
+        // Attachments (enunciados): seed e fonte da verdade; sincroniza quando o
+        // recurso embutido muda (o conteudo antigo nao fica preso no banco).
         var existingAttachments = await attachmentRepository.Query(new HarnessAttachment());
-        if (!existingAttachments.Any(attachment => attachment.VersionId == versionId && attachment.Kind == "Core"))
         {
             var assembly = typeof(BridgeFeatureSeeder).Assembly;
             string ReadResource(string resourceName)
@@ -111,19 +124,30 @@ public static class BridgeFeatureSeeder
                 using var reader = new System.IO.StreamReader(stream);
                 return reader.ReadToEnd();
             }
+
+            async Task SyncAttachment(string kind, string content)
+            {
+                if (string.IsNullOrWhiteSpace(content)) return;
+                var current = existingAttachments.FirstOrDefault(attachment =>
+                    attachment.VersionId == versionId && attachment.Kind == kind && attachment.Role == "general");
+                if (current is null)
+                {
+                    await attachmentRepository.Add(new HarnessAttachment { VersionId = versionId, Kind = kind, Role = "general", Content = content, CharCount = content.Length });
+                    return;
+                }
+                if (current.Content == content) return;
+                var oldAttachment = new HarnessAttachment();
+                foreach (var property in typeof(HarnessAttachment).GetProperties()) property.SetValue(oldAttachment, property.GetValue(current));
+                current.Content = content;
+                current.CharCount = content.Length;
+                await attachmentRepository.Update(current, oldAttachment);
+            }
+
             var systemPrompt = ReadResource("Rochas.AI.Manager.Web.Data.harness-system.md");
             if (string.IsNullOrWhiteSpace(systemPrompt)) systemPrompt = "Voce e um arquiteto desenvolvedor de software generalista.";
-            await attachmentRepository.Add(new HarnessAttachment { VersionId = versionId, Kind = "Core", Role = "general", Content = systemPrompt, CharCount = systemPrompt.Length });
-            var toolsJson = ReadResource("Rochas.AI.Manager.Web.Data.harness-tools.json");
-            if (!string.IsNullOrWhiteSpace(toolsJson))
-            {
-                await attachmentRepository.Add(new HarnessAttachment { VersionId = versionId, Kind = "Tools", Role = "general", Content = toolsJson, CharCount = toolsJson.Length });
-            }
-            var nucleo = ReadResource("Rochas.AI.Manager.Web.Data.harness-nucleo.md");
-            if (!string.IsNullOrWhiteSpace(nucleo))
-            {
-                await attachmentRepository.Add(new HarnessAttachment { VersionId = versionId, Kind = "Nucleo", Role = "general", Content = nucleo, CharCount = nucleo.Length });
-            }
+            await SyncAttachment("Core", systemPrompt);
+            await SyncAttachment("Tools", ReadResource("Rochas.AI.Manager.Web.Data.harness-tools.json"));
+            await SyncAttachment("Nucleo", ReadResource("Rochas.AI.Manager.Web.Data.harness-nucleo.md"));
         }
 
         // ToolPolicy por role
@@ -139,8 +163,23 @@ public static class BridgeFeatureSeeder
         };
         foreach (var (role, allow, deny, requireCall, maxTurns, stallLimit) in policyDefinitions)
         {
-            if (existingPolicies.Any(policy => policy.Role == role)) continue;
-            await policyRepository.Add(new ToolPolicy { Role = role, Allow = allow, Deny = deny, RequireCall = requireCall, MaxTurns = maxTurns, StallLimit = stallLimit });
+            var existing = existingPolicies.FirstOrDefault(policy => policy.Role == role);
+            if (existing is null)
+            {
+                await policyRepository.Add(new ToolPolicy { Role = role, Allow = allow, Deny = deny, RequireCall = requireCall, MaxTurns = maxTurns, StallLimit = stallLimit });
+                continue;
+            }
+            var syncedAllow = ToolListNormalizer.Normalize(existing.Allow, allow, role != "exec");
+            bool delegating = role != "exec";
+            var syncedDeny = existing.Deny;
+            if (delegating) syncedDeny = ToolListNormalizer.RemoveToken(syncedDeny, ToolListNormalizer.SubagentToken);
+            else if (!ToolListNormalizer.HasToken(syncedDeny, ToolListNormalizer.SubagentToken)) syncedDeny = ToolListNormalizer.JoinToken(syncedDeny, ToolListNormalizer.SubagentToken);
+            if (syncedAllow == existing.Allow && syncedDeny == existing.Deny) continue;
+            var oldPolicy = new ToolPolicy();
+            foreach (var property in typeof(ToolPolicy).GetProperties()) property.SetValue(oldPolicy, property.GetValue(existing));
+            existing.Allow = syncedAllow;
+            existing.Deny = syncedDeny;
+            await policyRepository.Update(existing, oldPolicy);
         }
 
         // InstructionProfile

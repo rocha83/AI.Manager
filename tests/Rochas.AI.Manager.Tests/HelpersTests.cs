@@ -111,3 +111,34 @@ public class ReasoningControlTagTests
         Assert.Equal("nao-json", ReasoningSanitizer.SanitizeResponses("nao-json"));
     }
 }
+
+public class ToolListNormalizerTests
+{
+    [Fact]
+    public void TrocaTaskPorSubagent_PreservaExtras()
+    {
+        Assert.Equal("read,write,subagent,shell",
+            ToolListNormalizer.Normalize("read,write,task,shell", "read,write,shell,subagent", delegating: true));
+    }
+
+    [Fact]
+    public void AdicionaSubagentQuandoRoleDelega()
+    {
+        Assert.Equal("read,grep,subagent",
+            ToolListNormalizer.Normalize("read,grep", "read,grep", delegating: true));
+    }
+
+    [Fact]
+    public void RemoveSubagentQuandoRoleNaoDelega()
+    {
+        Assert.Equal("read,shell",
+            ToolListNormalizer.Normalize("read,subagent,shell", "read,shell,execute", delegating: false));
+    }
+
+    [Fact]
+    public void CsvVazioUsaSeed()
+    {
+        Assert.Equal("read,glob,subagent",
+            ToolListNormalizer.Normalize("", "read,glob,subagent", delegating: true));
+    }
+}

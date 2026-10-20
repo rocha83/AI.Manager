@@ -15,8 +15,14 @@
   prompts `harness-system.md`/`harness-nucleo.md`; `subagent` liberado em
   plan/build/orch/moe/scripter e negado em exec; behavior tail
   (workspace/formato) incorporado ao `harness-system.md`.
-- Testes: 70 aprovados, 1 ignorado (pré-existente); `ReasoningControlTagTests`
-  cobre strip de tags e preservação da mensagem.
+- O seeder agora é **idempotente e sincronizante**: `ToolListNormalizer`
+  (Application/Helpers) troca `task` → `subagent`, adiciona nas roles que
+  delegam e remove no Exec; attachments `Core`/`Tools`/`Nucleo` são atualizados
+  quando o recurso embutido muda (antes o conteúdo antigo ficava preso no banco
+  porque o seed só inseria quando não existia).
+- Testes: 74 aprovados, 1 ignorado (pré-existente); `ReasoningControlTagTests`
+  cobre strip de tags/preservação da mensagem e `ToolListNormalizerTests` cobre
+  a migração de token (legado, adição, remoção no Exec, seed canônico).
 
 ## 9ccd377 - feat(ai-manager): vertical slice harness profiles (in-memory service + linter + MVC/AJAX UI)
 
