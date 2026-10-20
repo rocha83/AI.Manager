@@ -24,6 +24,8 @@ dotnet run --project src/Rochas.AI.Manager.Api
 
 MIT
 
+Contributors are welcome
+
 ---
 
 ## Português
@@ -45,6 +47,8 @@ dotnet run --project src/Rochas.AI.Manager.Api
 ### Licença
 
 MIT
+
+Contribuidores são bem vindos
 
 ---
 
@@ -68,6 +72,8 @@ dotnet run --project src/Rochas.AI.Manager.Api
 
 MIT
 
+Los contribuidores son bienvenidos
+
 ---
 
 ## Français
@@ -89,6 +95,8 @@ dotnet run --project src/Rochas.AI.Manager.Api
 ### Licence
 
 MIT
+
+Les contributeurs sont les bienvenus
 
 ---
 
@@ -112,12 +120,5 @@ dotnet run --project src/Rochas.AI.Manager.Api
 
 MIT
 
----
+Mitwirkende sind willkommen
 
-## Contributors / Contribuidores
-
-- Português: Contribuidores são bem vindos
-- English: Contributors are welcome
-- Español: Los contribuidores son bienvenidos
-- Français: Les contributeurs sont les bienvenus
-- Deutsch: Mitwirkende sind willkommen
