@@ -152,7 +152,8 @@ public static class BridgeFeatureSeeder
             // Caudas: ENUNCIADO e dado (complemento do system prompt). O texto
             // canonico mora no banco; o literal do motor e so fallback. O
             // anti-repeat NAO entra aqui: e logica do motor, nao texto.
-            await SyncAttachment("Behavior", HarnessTails.Behavior);
+            var behavior = ReadResource("Rochas.AI.Manager.Web.Data.harness-behavior.md");
+            await SyncAttachment("Behavior", string.IsNullOrWhiteSpace(behavior) ? HarnessTails.Behavior : behavior);
             await SyncAttachment("ToolsUsage", HarnessTails.Tools);
         }
 

@@ -139,6 +139,11 @@ genérico `llama/gemma-4-e2b` cai no `--thinking events` da unit e abre reasonin
 | **lógica** (programa) | motor `Rochas.AI.Manager.Bridge` + `BridgeOptions` | anti-repeat (janela 256, retry, detecção), máquina de estados do `<think>`, hold-back de tag |
 | **cadastro** (por modelo) | `ModelBinding` / `Agent` | "Utiliza coerção de tools" (`UsesToolCoercion`), temperatura, thinking, contexto |
 
+Anexos semeados hoje: `Core` (`Data/harness-system.md`), `Nucleo`,
+`Tools` (catálogo JSON), `Behavior` (`Data/harness-behavior.md`) e
+`ToolsUsage` (`HarnessTails.Tools`). O seeder sincroniza no boot: mudar o `.md`
+e reiniciar o Web já atualiza o perfil.
+
 O motor não guarda texto de enunciado como fonte da verdade: `HarnessTails` é só
 fallback. `BridgeOptionsFactory.FromModel` combina o cadastro do modelo com os
 anexos do perfil, então o mesmo motor atende modelo nativo (coerção off) e

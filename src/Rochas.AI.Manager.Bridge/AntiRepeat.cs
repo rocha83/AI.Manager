@@ -8,8 +8,9 @@ namespace Rochas.AI.Manager.Bridge;
 public static class AntiRepeat
 {
     public const string DefaultNotice =
-        "Aqui e a ponte de contencao OpenCodeBridge: pare de enviar o mesmo raciocinio, provavelmente voce entrou em repeticao invalida; " +
-        "quando informada a repeticao, nao responda mais nada, apenas encerre em silencio, obrigado.";
+        "Aqui e a ponte de contencao: voce repetiu uma chamada/raciocinio identico ja presente no historico e ele foi retido. " +
+        "Nao repita: confirme o efeito com read/grep (ou o resultado anterior) e, se faltar correcao, use edit no trecho exato. " +
+        "Se nada falta, encerre em silencio.";
 
     /// <summary>Posição (chars) onde a cauda repetida começa no texto normalizado, ou -1.</summary>
     public static int DuplicateAt(string? accumulated, int window)

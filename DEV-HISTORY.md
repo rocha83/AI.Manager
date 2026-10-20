@@ -1,3 +1,25 @@
+## fix(bridge-engine): regra de escrita contra loop de `write` e aviso de contencao acionavel
+
+- Date: 2026-10-20
+
+- Prova do loop (log da bridge, GPU): o mesmo `write` (mesmos argumentos) apareceu
+  **2x** no historico do chat (msgs 117/120 e 125/128) e a 3a tentativa caiu em
+  `anti-repeat-loop` com `tool=write` — o turno fechava sem tool call e sem texto
+  util, dando a impressao de travamento.
+- **Enunciado (dado)**: `Data/harness-behavior.md` passa a ser o texto canonico
+  do anexo `Behavior` (lido pelo seeder), com a regra
+  `COMPORTAMENTO (escrita)`: `write` uma vez por arquivo/conteudo, correcao e
+  `edit` no trecho exato, nunca reemitir a mesma chamada (path+conteudo) sem
+  confirmar com `read`/`grep`, erro de tool pede argumento novo (max 2 tentativas).
+  `HarnessTails.Behavior` fica como fallback do motor.
+- **Aviso de contencao (logica)**: `AntiRepeat.DefaultNotice` agora diz o que
+  fazer (confirmar com `read`/`grep`, corrigir com `edit`), em vez de apenas mandar
+  encerrar em silencio.
+- Corrigido fragmento concatenado por engano no `HarnessTails.Tools`
+  (`"digitando" + "nao existe"` iam para o system prompt).
+- Testes: 97 aprovados, 1 ignorado (`HarnessTailsTests`: regra de escrita presente,
+  workspace/formato preservados, tools sem fragmento, aviso acionavel).
+
 ## feat(bridge-engine): motor de protocolo no AI.Manager (tradução, stream, anti-repeat) e flag de coerção no cadastro do modelo
 
 - Date: 2026-10-20
