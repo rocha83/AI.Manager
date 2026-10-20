@@ -1520,18 +1520,36 @@ if (micBtn) {
       mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
       mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        stream.getTracks().forEach(t => t.stop());
+        // Resample para 16kHz mono e codifica WAV, escolhe o menor entre WAV e original
+        let chosenBlob = blob;
+        let chosenMime = mediaRecorder.mimeType || 'audio/webm';
+        try {
+          const arrBuf = await blob.arrayBuffer();
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const decoded = await audioCtx.decodeAudioData(arrBuf.slice(0));
+          const targetRate = 16000;
+          const offline = new OfflineAudioContext(1, Math.ceil(decoded.duration * targetRate), targetRate);
+          const src = offline.createBufferSource();
+          src.buffer = decoded;
+          src.connect(offline.destination);
+          src.start(0);
+          const rendered = await offline.startRendering();
+          const wavBlob = encodeWav(rendered);
+          if (wavBlob.size < blob.size) { chosenBlob = wavBlob; chosenMime = 'audio/wav'; }
+        } catch (e) {
+          try { Tracer.warn('mic', 'resample falhou, usando original', { err: String(e) }); } catch {}
+        }
         const reader = new FileReader();
         reader.onloadend = () => {
           const b64 = (reader.result || '').toString().split(',')[1];
           if (!b64) return;
-          // Anexa ao prompt como marcador multimodal
           const ta = document.getElementById('prompt');
-          const tag = '\n[audio base64 ' + (mediaRecorder.mimeType || 'audio/webm') + '] ' + b64.slice(0, 64) + '...';
+          const tag = '\n[audio base64 ' + chosenMime + '] ' + b64.slice(0, 64) + '...';
           ta.value = (ta.value || '') + tag;
-          try { Tracer.info('mic', 'audio capturado', { size: blob.size, mime: mediaRecorder.mimeType }); } catch {}
+          try { Tracer.info('mic', 'audio capturado', { size: chosenBlob.size, mime: chosenMime }); } catch {}
         };
-        reader.readAsDataURL(blob);
-        stream.getTracks().forEach(t => t.stop());
+        reader.readAsDataURL(chosenBlob);
       };
       mediaRecorder.start();
       micBtn.textContent = '⏹';
@@ -1560,6 +1578,36 @@ if (attachBtn && fileInput) {
     reader.readAsDataURL(f);
     fileInput.value = '';
   });
+}
+
+function encodeWav(audioBuffer) {
+  const numChannels = 1;
+  const sampleRate = audioBuffer.sampleRate;
+  const samples = audioBuffer.getChannelData(0);
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+  const writeStr = (off, str) => { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); };
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * 2, true);
+  view.setUint16(32, numChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  view.setUint32(40, samples.length * 2, true);
+  let off = 44;
+  for (let i = 0; i < samples.length; i++) {
+    let v = Math.max(-1, Math.min(1, samples[i]));
+    v = v < 0 ? v * 0x8000 : v * 0x7FFF;
+    view.setInt16(off, v, true);
+    off += 2;
+  }
+  return new Blob([view], { type: 'audio/wav' });
 }
 </script>
 }
