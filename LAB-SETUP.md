@@ -176,8 +176,12 @@ Regras:
 3. Espelhar a mesma alteração em `remaster-fix/agents/*.md` (o live remaster e o
    `~/.config/opencode/agents/` são cópias independentes; divergir gera o bug só
    na ISO).
-4. A bridge **não** participa: `ToolBlacklist` (`--tool-blacklist`) não tem
-   `subagent`/`task` e, em passthrough, não interfere na resolução de tools.
+4. A bridge **não** filtra tools: `ToolBlacklist` (`--tool-blacklist`) não tem
+   `subagent`/`task`, e `ToolsToChat` só converte o schema (Responses → chat),
+   preservando todos os itens do array. O único corte é o de chaves `pattern`
+   sem âncora `^...$` (`pattern-strip`, exige llama.cpp), que remove o campo e
+   **não** a tool. Atenção: `--passthrough-responses` só vale quando o request
+   **não** tem tools; com tools a bridge traduz e o array chega ao modelo.
 
 ---
 
