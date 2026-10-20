@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Core SDK of the Rochas.AI.Manager platform: domain, application, infrastructure a" +
     "nd training engine. Decoupled from any frontend."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c91412a2ef6f43c1b4f958ea55155badd8a3a635")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f1952a230409fe9f9709782c25e2ec8556c75dfd")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rochas.AI.Manager.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rochas.AI.Manager.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

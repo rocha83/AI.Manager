@@ -68,6 +68,8 @@
           </li>
           <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-info float-end" id="send">ENVIAR</button>
           <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary float-end me-2" id="micBtn" title="Gravar audio">🎤</button>
+          <input type="file" id="fileInput" accept=".bmp,.jpg,.jpeg,.png,.webp,.pdf" style="display:none">
+          <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary float-start me-2" id="attachBtn" title="Anexar arquivo">📎</button>
         </ul>
 
       </div>
@@ -1537,6 +1539,26 @@ if (micBtn) {
       try { Tracer.error('mic', 'falha ao acessar microfone', { err: String(e) }); } catch {}
       alert('Microfone indisponivel: ' + e);
     }
+  });
+}
+
+// --- Anexo de arquivos (bmp,jpg,png,webp,pdf) ---
+const attachBtn = document.getElementById('attachBtn');
+const fileInput = document.getElementById('fileInput');
+if (attachBtn && fileInput) {
+  attachBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result || '';
+      const ta = document.getElementById('prompt');
+      ta.value = (ta.value || '') + '\n[anexo: ' + f.name + '] ' + String(dataUrl).slice(0, 80) + '...';
+      try { Tracer.info('attach', 'arquivo anexado', { name: f.name, size: f.size, type: f.type }); } catch {}
+    };
+    reader.readAsDataURL(f);
+    fileInput.value = '';
   });
 }
 </script>
