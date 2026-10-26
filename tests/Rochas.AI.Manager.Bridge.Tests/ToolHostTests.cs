@@ -191,4 +191,59 @@ public sealed class ToolHostTests : IDisposable
         Assert.NotNull(responses[0]?["name"]);
         Assert.Null(responses[0]?["function"]);
     }
+
+    [Theory]
+    [InlineData("shell", "{\"command\":\"rm -rf /tmp/x\"}")]
+    [InlineData("bash", "{\"command\":\"rm -rf /tmp/x\"}")]
+    [InlineData("shell", "{\"command\":\"bash -c 'rm -rf /tmp/x'\"}")]
+    [InlineData("shell", "{\"command\":\"sed -i s/a/b/ x.cs\"}")]
+    public void Permission_NegaRiscoDeShell(string tool, string args)
+    {
+        var (action, reason) = PermissionPolicy.Check("Gemma4-E4B-Q4-plan", tool, args);
+        Assert.Equal("deny", action);
+        Assert.False(string.IsNullOrWhiteSpace(reason));
+    }
+
+    [Theory]
+    [InlineData("shell", "{\"command\":\"ls -la\"}")]
+    [InlineData("shell", "{\"command\":\"bash -n script.sh\"}")]
+    public void Permission_LiberaLeituraEValidacao(string tool, string args)
+    {
+        var (action, _) = PermissionPolicy.Check("Gemma4-E4B-Q4-build", tool, args);
+        Assert.Equal("allow", action);
+    }
+
+    [Fact]
+    public void Permission_NegaGitDeEscritaParaPlan()
+    {
+        var (action, reason) = PermissionPolicy.Check(
+            "Gemma4-E4B-Q4-plan", "git", "{\"command\":\"git commit -m x\"}");
+        Assert.Equal("deny", action);
+        Assert.Contains("git", reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Permission_LiberaGitDeEscritaParaBuild()
+    {
+        var (action, _) = PermissionPolicy.Check(
+            "Gemma4-E4B-Q4-build", "git", "{\"command\":\"git add -A\"}");
+        Assert.Equal("allow", action);
+    }
+
+    [Fact]
+    public void Permission_NegaPushParaQualquerRole()
+    {
+        var (action, reason) = PermissionPolicy.Check(
+            "Gemma4-E4B-Q4-build", "git", "{\"command\":\"git push origin main\"}");
+        Assert.Equal("deny", action);
+        Assert.Contains("push", reason, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("Gemma4-E4B-Q4-plan", "plan")]
+    [InlineData("gemma4-e4b-plan", "plan")]
+    [InlineData("Gemma4-E4B-Q4", "")]
+    [InlineData("", "")]
+    public void Permission_RoleVemDoSufixoDoModelo(string model, string expected)
+        => Assert.Equal(expected, PermissionPolicy.RoleOf(model));
 }

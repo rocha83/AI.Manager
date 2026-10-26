@@ -33,7 +33,7 @@ dotnet test tests/Rochas.AI.Manager.Tests -c Release           # 105 passed, 1 s
 | `GET /api/tools` | `Bridge.Api` | completo |
 | `GET /api/harness` | `Bridge.Api` | completo |
 | `GET /api/metrics` (transporte + tools) | `Bridge.Api` | completo |
-| `POST /api/permission/check` | `Bridge.Api` | completo |
+| `POST /api/permission/check` | `Bridge.Api` | completo (delega ao inspetor/validador) |
 | `POST /api/translate` | `Bridge.Api` | completo |
 | `POST /api/sanitize` | `Bridge.Api` | completo |
 | `POST /api/convert` | `Bridge.Api` | completo |
@@ -56,6 +56,12 @@ dotnet test tests/Rochas.AI.Manager.Tests -c Release           # 105 passed, 1 s
 - contrato HTTP do executor (request → response, duração, metadados);
 - aliases `bash` → `shell`;
 - shapes do catálogo (chat vs Responses).
+
+A política de `POST /api/permission/check` não duplica regra: `shell`/`bash`
+passam por `ShellInspector.Validate` (mesmo fail-closed do executor) e `git` por
+`GitToolHandler.Validate` (escrita só em `build`/`exec`, `push`/`reset`/`force`
+negados). O role sai do sufixo do modelo (`...-plan`). Coberto por 13 casos
+adicionais (34 no total).
 
 ### Fora deste corte (F1)
 

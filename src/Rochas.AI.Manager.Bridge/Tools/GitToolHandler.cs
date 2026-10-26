@@ -56,37 +56,8 @@ public sealed class GitToolHandler : IToolHandler
             repoDir = resolved;
         }
 
-        bool canWrite = WriteRoles.Contains(context.Role ?? "");
-        var allowed = canWrite
-            ? new HashSet<string>(ReadAllowed.Concat(WriteAllowed), StringComparer.Ordinal)
-            : ReadAllowed;
-        string allowedList = string.Join(", ", allowed);
-
-        string norm = command.Replace('\t', ' ');
-        foreach (string bad in Denied)
-        {
-            if (norm.Contains(bad, StringComparison.Ordinal))
-                return ToolResult.Fail(
-                    $"git negado: '{bad.Trim()}' nao e permitido (escrita local via init/add/commit)");
-        }
-
-        // -c e aceito so para a identidade do commit (user.name/user.email).
-        foreach (Match m in Regex.Matches(norm, @"(?:^|\s)-c\s+(\S+)"))
-        {
-            string kv = m.Groups[1].Value;
-            if (!kv.StartsWith("user.name=", StringComparison.Ordinal)
-                && !kv.StartsWith("user.email=", StringComparison.Ordinal))
-                return ToolResult.Fail("git -c: so user.name/user.email sao aceitos");
-        }
-
-        string[] argv = Split(command);
-        if (argv.Length > 0 && argv[0] != "git" && allowed.Contains(argv[0]))
-            argv = new[] { "git" }.Concat(argv).ToArray();
-        if (argv.Length == 0 || argv[0] != "git")
-            return ToolResult.Fail($"command deve comecar com 'git' (role '{context.Role}' permite: {allowedList})");
-        if (argv.Length < 2 || !allowed.Contains(argv[1]))
-            return ToolResult.Fail(
-                $"subcomando git nao permitido para o role '{context.Role}' (permitidos: {allowedList})");
+        if (Validate(command, context.Role, out string[] argv) is string why)
+            return ToolResult.Fail(why);
 
         try
         {
@@ -97,6 +68,51 @@ public sealed class GitToolHandler : IToolHandler
         {
             return ToolResult.Fail($"falha ao rodar git: {ex.Message.Split('\n')[0]}");
         }
+    }
+
+    /// <summary>Valida o comando git para o role; null libera e devolve o argv.</summary>
+    /// <param name="command">Comando informado pelo modelo.</param>
+    /// <param name="role">Role do agente (<c>build</c>/<c>exec</c> escrevem).</param>
+    /// <param name="argv">Argumentos normalizados (com <c>git</c> na frente).</param>
+    /// <returns>Motivo da negacao ou null.</returns>
+    public static string? Validate(string command, string? role, out string[] argv)
+    {
+        argv = Array.Empty<string>();
+        if (string.IsNullOrWhiteSpace(command))
+            return "command e obrigatorio (ex.: 'git status')";
+
+        bool canWrite = WriteRoles.Contains(role ?? "");
+        var allowed = canWrite
+            ? new HashSet<string>(ReadAllowed.Concat(WriteAllowed), StringComparer.Ordinal)
+            : ReadAllowed;
+        string allowedList = string.Join(", ", allowed);
+
+        string norm = command.Replace('\t', ' ');
+        foreach (string bad in Denied)
+        {
+            if (norm.Contains(bad, StringComparison.Ordinal))
+                return $"git negado: '{bad.Trim()}' nao e permitido (escrita local via init/add/commit)";
+        }
+
+        // -c e aceito so para a identidade do commit (user.name/user.email).
+        foreach (Match m in Regex.Matches(norm, @"(?:^|\s)-c\s+(\S+)"))
+        {
+            string kv = m.Groups[1].Value;
+            if (!kv.StartsWith("user.name=", StringComparison.Ordinal)
+                && !kv.StartsWith("user.email=", StringComparison.Ordinal))
+                return "git -c: so user.name/user.email sao aceitos";
+        }
+
+        string[] parsed = Split(command);
+        if (parsed.Length > 0 && parsed[0] != "git" && allowed.Contains(parsed[0]))
+            parsed = new[] { "git" }.Concat(parsed).ToArray();
+        if (parsed.Length == 0 || parsed[0] != "git")
+            return $"command deve comecar com 'git' (role '{role}' permite: {allowedList})";
+        if (parsed.Length < 2 || !allowed.Contains(parsed[1]))
+            return $"subcomando git nao permitido para o role '{role}' (permitidos: {allowedList})";
+
+        argv = parsed;
+        return null;
     }
 
     private static string[] Split(string command)
