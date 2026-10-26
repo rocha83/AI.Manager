@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0",
+  "experiment": {
+    "id": 1,
+    "version": 1,
+    "name": "smoke do transporte",
+    "statement": "valida o caminho Responses -> chat -> Responses sem GPU"
+  },
+  "runner": {
+    "id": "local-fake",
+    "capabilities": ["dotnet", "http", "fake-llama"]
+  },
+  "target": {
+    "bridgeUrl": "http://127.0.0.1:4152",
+    "upstreamUrl": "http://127.0.0.1:4199",
+    "modelId": "smoke",
+    "contextWindow": 1024,
+    "maxTokens": 128,
+    "isGate": true
+  },
+  "harness": {
+    "profileVersionId": 1,
+    "mode": "BridgeManaged"
+  },
+  "stages": [
+    {
+      "key": "L1",
+      "title": "transporte basico",
+      "order": 1,
+      "maxParallelSteps": 1,
+      "onFailure": "continue",
+      "gate": { "policy": "default" },
+      "preflight": [
+        { "kind": "http-json", "url": "http://127.0.0.1:4199/health" }
+      ],
+      "steps": [
+        {
+          "key": "status",
+          "kind": "http",
+          "args": ["http://127.0.0.1:4152/api/status"],
+          "timeoutSec": 30
+        },
+        {
+          "key": "chat",
+          "kind": "http",
+          "args": ["http://127.0.0.1:4152/v1/chat/completions"],
+          "timeoutSec": 60,
+          "dependsOn": ["status"]
+        }
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "key": "respostas-basicas",
+      "title": "resposta e tool call via shim",
+      "prompt": "Responda ok e, quando houver tools, leia a.txt.",
+      "workspace": { "template": "smoke", "clean": true },
+      "model": { "role": "exec", "temperature": 0.1, "thinking": "off" },
+      "tools": { "mode": "auto", "allow": ["read"] },
+      "loop": { "maxTurns": 2, "maxNudges": 0, "review": false },
+      "assertions": [
+        { "type": "fileExists", "path": "a.txt" }
+      ]
+    }
+  ]
+}

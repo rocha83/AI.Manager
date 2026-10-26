@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Rochas.AI.Manager.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:59119;http://localhost:59120"
+    }
+  }
+}

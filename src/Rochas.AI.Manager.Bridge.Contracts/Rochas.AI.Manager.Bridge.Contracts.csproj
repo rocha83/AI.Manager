@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Rochas.AI.Manager.Bridge.Contracts</RootNamespace>
+    <AssemblyName>Rochas.AI.Manager.Bridge.Contracts</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>Rochas.AI.Manager.Bridge.Contracts</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Rochas</Authors>
+    <Description>Contratos versionados do AI.Manager.Bridge: manifesto de circuito, resultado, status e canonicalizacao/checksum.</Description>
+    <PackageTags>rochas;ai-manager;bridge;contracts;manifest</PackageTags>
+  </PropertyGroup>
+
+</Project>

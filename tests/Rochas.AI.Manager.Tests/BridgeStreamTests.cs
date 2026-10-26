@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 using Rochas.AI.Manager.Bridge;
-using Rochas.AI.Manager.Domain.Harness;
+using Rochas.AI.Manager.Bridge.Contracts;
 using Xunit;
 
 namespace Rochas.AI.Manager.Tests;
@@ -187,9 +187,7 @@ public class BridgeOptionsFactoryTests
     [Fact]
     public void DadoVenceOsDefaults()
     {
-        var content = new HarnessContent(
-            Core: null, ToolCatalog: null, Nucleo: null,
-            Behavior: "BEHAVIOR-DB", ToolsUsage: "TOOLS-DB");
+        var content = new BridgeHarnessContent("BEHAVIOR-DB", "TOOLS-DB");
 
         var options = BridgeOptionsFactory.FromContent(content);
 
@@ -202,7 +200,7 @@ public class BridgeOptionsFactoryTests
     [Fact]
     public void SemDadoMantemOsDefaultsDoMotor()
     {
-        var options = BridgeOptionsFactory.FromContent(HarnessContent.Empty);
+        var options = BridgeOptionsFactory.FromContent(BridgeHarnessContent.Empty);
 
         Assert.Equal(HarnessTails.Behavior, options.BehaviorTail);
         Assert.Equal(HarnessTails.Tools, options.ToolsTail);
@@ -212,12 +210,8 @@ public class BridgeOptionsFactoryTests
     [Fact]
     public void CoercaoVemDoCadastroDoModelo()
     {
-        var model = new ModelBinding
-        {
-            Thinking = "off", Temperature = 0.3, MaxTokens = 16000,
-            ContextWindow = 65536, UsesToolCoercion = true
-        };
-        var content = new HarnessContent(null, null, null, "B", "T");
+        var model = new BridgeModelSettings("off", 0.3, 16000, 65536, true);
+        var content = new BridgeHarnessContent("B", "T");
 
         var options = BridgeOptionsFactory.FromModel(model, content);
 
@@ -233,7 +227,7 @@ public class BridgeOptionsFactoryTests
     [Fact]
     public void ModeloComToolCallingNativoNaoCoage()
     {
-        var options = BridgeOptionsFactory.FromModel(new ModelBinding { UsesToolCoercion = false });
+        var options = BridgeOptionsFactory.FromModel(new BridgeModelSettings("events", 0.5, 0, 32768, false));
         Assert.False(options.CoerceNarrated);
     }
 
@@ -242,7 +236,7 @@ public class BridgeOptionsFactoryTests
     {
         var baseline = new BridgeOptions { Thinking = "off", StreamPerDelta = false };
         var options = BridgeOptionsFactory.FromContent(
-            new HarnessContent(null, null, null, "B", null), baseline);
+            new BridgeHarnessContent("B", null), baseline);
 
         Assert.Equal("off", options.Thinking);
         Assert.False(options.StreamPerDelta);

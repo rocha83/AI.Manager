@@ -3,6 +3,11 @@
     <Project Path="src/Rochas.AI.Manager.Application/Rochas.AI.Manager.Application.csproj" />
     <Project Path="src/Rochas.AI.Manager.Core/Rochas.AI.Manager.Core.csproj" />
     <Project Path="src/Rochas.AI.Manager.Bridge/Rochas.AI.Manager.Bridge.csproj" />
+    <Project Path="src/Rochas.AI.Manager.Bridge.Contracts/Rochas.AI.Manager.Bridge.Contracts.csproj" />
+    <Project Path="src/Rochas.AI.Manager.Bridge.Client/Rochas.AI.Manager.Bridge.Client.csproj" />
+    <Project Path="src/Rochas.AI.Manager.Bridge.Hosting/Rochas.AI.Manager.Bridge.Hosting.csproj" />
+    <Project Path="src/Rochas.AI.Manager.Bridge.Api/Rochas.AI.Manager.Bridge.Api.csproj" />
+    <Project Path="src/Rochas.AI.Manager.Bridge.Runner/Rochas.AI.Manager.Bridge.Runner.csproj" />
     <Project Path="src/Rochas.AI.Manager.Domain/Rochas.AI.Manager.Domain.csproj" />
     <Project Path="src/Rochas.AI.Manager.Infrastructure/Rochas.AI.Manager.Infrastructure.csproj" />
     <Project Path="src/Rochas.AI.Manager.TrainingEngine/Rochas.AI.Manager.TrainingEngine.csproj" />
@@ -11,5 +16,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Rochas.AI.Manager.Tests/Rochas.AI.Manager.Tests.csproj" />
+    <Project Path="tests/Rochas.AI.Manager.Bridge.Tests/Rochas.AI.Manager.Bridge.Tests.csproj" />
   </Folder>
 </Solution>

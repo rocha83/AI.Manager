@@ -46,6 +46,49 @@ public sealed class BridgeOptions
 
     public string BehaviorTail { get; set; } = HarnessTails.Behavior;
 
+    /// <summary>
+    /// Substitui o system do cliente pelo <see cref="MainHarness"/> no caminho
+    /// gerido (model sem sufixo de role). Quando aplica, as caudas sao dispensadas
+    /// (o nucleo corretivo mora no harness, uma vez so).
+    /// </summary>
+    public bool MainHarness { get; set; }
+
+    /// <summary>Model id carrega sufixo de role: nao substitui o system do cliente.</summary>
+    public bool HasProfile { get; set; }
+
+    /// <summary>
+    /// Harness legado: strip de call narrada no historico + guardrail textual.
+    /// Desligado por padrao no componente novo (o shim/canal nativo cobre o caso).
+    /// </summary>
+    public bool LegacyHarness { get; set; }
+
+    /// <summary>
+    /// Modo QwenStandard: ModelPrompt sintetizado + traducao de nomes/args
+    /// OpenAI &lt;-&gt; Alibaba nos dois sentidos.
+    /// </summary>
+    public bool QwenStandard { get; set; }
+
+    /// <summary>
+    /// Estrategia de tools: remove a tool <c>execute</c> (Code Mode) e troca o
+    /// bloco nativo pelo aviso de tools diretas. Default ligado.
+    /// </summary>
+    public bool ToolStrategy { get; set; } = true;
+
+    /// <summary>
+    /// Falhas consecutivas no mesmo alvo que injetam o aviso no ultimo resultado
+    /// de tool (0 = desliga o nudge).
+    /// </summary>
+    public int BreakerSoft { get; set; } = 3;
+
+    /// <summary>
+    /// Falhas consecutivas que encerram o turno sem chamar o modelo
+    /// (0 = desliga o curto-circuito).
+    /// </summary>
+    public int BreakerHard { get; set; } = 6;
+
+    /// <summary>Copia top_p/top_k/repeat_penalty/... do request para o corpo chat.</summary>
+    public bool SamplingPassthrough { get; set; }
+
     /// <summary>Guard rail textual do harness legado (anti-loop).</summary>
     public string? SystemGuardrail { get; set; }
 
@@ -58,4 +101,16 @@ public sealed class BridgeOptions
     public double ContextThreshold { get; set; } = 0.95;
 
     public int ContextTokens { get; set; }
+
+    /// <summary>
+    /// "json" = shim generico de tool calling (remove tools, injeta envelope no
+    /// system e forca grammar JSON). Vazio = desligado (default).
+    /// </summary>
+    public string ToolShimMode { get; set; } = string.Empty;
+
+    /// <summary>Cap de chars por string no grammar do shim; 0 = sem cap.</summary>
+    public int ToolShimMaxString { get; set; } = 2000;
+
+    /// <summary>Calls minimas no historico antes de liberar {"final":...}; 0 = libera sempre.</summary>
+    public int ToolShimMinCalls { get; set; }
 }

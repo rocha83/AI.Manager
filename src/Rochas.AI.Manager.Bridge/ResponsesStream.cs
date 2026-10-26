@@ -18,6 +18,8 @@ public sealed class ResponsesStreamTranslator
     private readonly double temperature;
     private readonly bool hadTools;
     private readonly IReadOnlyList<string>? announcedTools;
+    private readonly JsonNode? historyMessages;
+    private readonly ToolArgsAntiRepeatReply toolArgsProbe;
 
     private readonly StringBuilder thinkingText = new();
     private readonly StringBuilder contentText = new();
@@ -41,7 +43,8 @@ public sealed class ResponsesStreamTranslator
         string model,
         double temperature,
         bool hadTools = false,
-        IReadOnlyList<string>? announcedTools = null)
+        IReadOnlyList<string>? announcedTools = null,
+        JsonNode? historyMessages = null)
     {
         this.options = options;
         this.emit = emit;
@@ -49,6 +52,8 @@ public sealed class ResponsesStreamTranslator
         this.temperature = temperature;
         this.hadTools = hadTools;
         this.announcedTools = announcedTools;
+        this.historyMessages = historyMessages;
+        this.toolArgsProbe = new ToolArgsAntiRepeatReply(options.AntiRepeatWindow);
     }
 
     /// <summary>true quando a sonda de repetição disparou no turno corrente.</summary>
@@ -121,6 +126,14 @@ public sealed class ResponsesStreamTranslator
         if (inThink) FeedThinking(carry); else FlushMessage(carry);
         FlushReasoningRest();
 
+        // Args de tool em loop: a call parcial nao serve; troca por aviso.
+        if (RepeatTripped && RepeatWhere == "tool-args")
+        {
+            toolAccum.Clear();
+            if (contentText.Length == 0)
+                FlushMessage("\n\n" + (options.AntiRepeatNotice ?? AntiRepeat.DefaultNotice) + "\n\n");
+        }
+
         int messageIndex = thinkOpen ? 1 : 0;
 
         if (thinkOpen) CloseReasoningItem();
@@ -138,7 +151,7 @@ public sealed class ResponsesStreamTranslator
         }
 
         var loopedSignatures = options.AntiRepeat
-            ? AntiRepeat.LoopedToolSignatures(null, 2)
+            ? AntiRepeat.LoopedToolSignatures(historyMessages, 2)
             : new HashSet<string>(StringComparer.Ordinal);
 
         int callIndex = (thinkOpen ? 1 : 0) + (messageOpen ? 1 : 0);
@@ -147,14 +160,16 @@ public sealed class ResponsesStreamTranslator
         foreach (var (_, accumulator) in toolAccum)
         {
             string arguments = accumulator.Args.ToString();
-            if (loopedSignatures.Contains(AntiRepeat.ToolSignature(accumulator.Name, arguments)))
+            string name = accumulator.Name;
+            if (options.QwenStandard) (name, arguments) = QwenStandard.ToClient(name, arguments);
+            if (loopedSignatures.Contains(AntiRepeat.ToolSignature(name, arguments)))
             {
                 EnsureMessageOpen(ref callIndex);
                 FlushMessage("\n\n" + (options.AntiRepeatNotice ?? AntiRepeat.DefaultNotice) + "\n\n");
                 continue;
             }
-            emittedCalls.Add((accumulator.Id, accumulator.Name, arguments));
-            EmitToolCall(callIndex, accumulator.Id, accumulator.Name, arguments);
+            emittedCalls.Add((accumulator.Id, name, arguments));
+            EmitToolCall(callIndex, accumulator.Id, name, arguments);
             callIndex++;
         }
 
@@ -407,7 +422,21 @@ public sealed class ResponsesStreamTranslator
             if (function?["name"]?.GetValue<string>() is string name && name.Length > 0)
                 toolAccum[index] = (accumulator.Id, name, accumulator.Args);
             if (function?["arguments"]?.GetValue<string>() is string arguments)
+            {
                 accumulator.Args.Append(arguments);
+                if (options.AntiRepeat && !RepeatTripped
+                    && accumulator.Args.Length >= ToolArgsAntiRepeatReply.ProbeMinChars
+                    && toolArgsProbe.IsRepeat(accumulator.Args.ToString()))
+                {
+                    RepeatTripped = true;
+                    RepeatWhere = "tool-args";
+                    string normalized = JsonOps.Normalize(accumulator.Args.ToString());
+                    RepeatAt = Math.Max(0, normalized.Length - options.AntiRepeatWindow);
+                    RepeatContext = normalized.Length > RepeatAt
+                        ? normalized[RepeatAt..Math.Min(normalized.Length, RepeatAt + 40)]
+                        : "";
+                }
+            }
         }
     }
 

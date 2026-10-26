@@ -7,10 +7,16 @@
     <RootNamespace>Rochas.AI.Manager.Bridge</RootNamespace>
     <AssemblyName>Rochas.AI.Manager.Bridge</AssemblyName>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>Rochas.AI.Manager.Bridge</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Rochas</Authors>
+    <Description>Motor de protocolo e fluxo do AI.Manager.Bridge: traducao Responses/chat, stream SSE, anti-repeat, harness tails, manifesto e dry-run.</Description>
+    <PackageTags>rochas;ai-manager;bridge;responses;chat;stream;harness</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Rochas.AI.Manager.Application\Rochas.AI.Manager.Application.csproj" />
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Contracts\Rochas.AI.Manager.Bridge.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Rochas.AI.Manager.Bridge.Hosting</RootNamespace>
+    <AssemblyName>Rochas.AI.Manager.Bridge.Hosting</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>Rochas.AI.Manager.Bridge.Hosting</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Rochas</Authors>
+    <Description>Camada de host compartilhada do AI.Manager.Bridge: CLI/configuracao, identidade e status. Nao contem ASP.NET nem o motor de protocolo.</Description>
+    <PackageTags>rochas;ai-manager;bridge;hosting;cli</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Contracts\Rochas.AI.Manager.Bridge.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

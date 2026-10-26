@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using Rochas.AI.Manager.Application.Helpers;
 
 namespace Rochas.AI.Manager.Bridge;
 
@@ -31,6 +30,7 @@ public static class ChatToResponses
         JsonNode? historyMessages = null)
     {
         thinkMode ??= options.Thinking;
+        if (options.QwenStandard) QwenStandard.TranslateCompletionForClient(chat);
         var choice = chat["choices"]?[0]?.AsObject() ?? new JsonObject();
         var message = choice["message"]?.AsObject() ?? new JsonObject();
 
@@ -65,9 +65,14 @@ public static class ChatToResponses
                 // Alguns clientes mandam "default.nome" (namespace da tool).
                 if (name.StartsWith("default.", StringComparison.OrdinalIgnoreCase))
                     name = name["default.".Length..];
+                name = ResolveAnnouncedName(ResponsesTranslation.CanonToolAlias(name), announcedTools);
                 string arguments = JsonOps.ToArguments(function["arguments"]);
 
-                if (loopedSignatures.Contains(AntiRepeat.ToolSignature(name, arguments)))
+                var argsProbe = new ToolArgsAntiRepeatReply(options.AntiRepeatWindow);
+                bool argsLooped = options.AntiRepeat
+                    && arguments.Length >= ToolArgsAntiRepeatReply.ProbeMinChars
+                    && argsProbe.IsRepeat(arguments);
+                if (argsLooped || loopedSignatures.Contains(AntiRepeat.ToolSignature(name, arguments)))
                 {
                     if (notice.Length == 0) notice = "\n\n" + (options.AntiRepeatNotice ?? AntiRepeat.DefaultNotice) + "\n\n";
                     continue;
@@ -80,9 +85,22 @@ public static class ChatToResponses
         // (hermes/plural/fence). Só atua se o texto parsear; prosa passa intacta.
         if (toolCalls.Count == 0 && options.CoerceNarrated && hadTools)
         {
-            var known = announcedTools?.ToList();
+            var known = announcedTools?.ToList() ?? new List<string>();
+            if (options.QwenStandard)
+            {
+                foreach (string name in known.ToList())
+                {
+                    string upstream = QwenStandard.ToUpstreamName(name);
+                    if (!known.Contains(upstream, StringComparer.OrdinalIgnoreCase)) known.Add(upstream);
+                }
+            }
             foreach (var (name, arguments) in ToolCallTextExtractor.Extract(content, known))
-                toolCalls.Add(("call_" + JsonOps.NewId(), name, arguments));
+            {
+                var (clientName, clientArgs) = options.QwenStandard
+                    ? QwenStandard.ToClient(name, arguments)
+                    : (name, arguments);
+                toolCalls.Add(("call_" + JsonOps.NewId(), clientName, clientArgs));
+            }
 
             if (toolCalls.Count > 0) content = StripToolBlocks(content).Trim();
         }
@@ -142,6 +160,42 @@ public static class ChatToResponses
         }
 
         return NewResponse(output, model, temperature, inputTokens, outputTokens, "completed");
+    }
+
+    /// <summary>Resposta sintetica do breaker (sem chamada ao upstream).</summary>
+    public static JsonObject TripResponse(string notice, string model, double temperature)
+    {
+        var output = new JsonArray(new JsonObject
+        {
+            ["id"] = "msg_" + JsonOps.NewId(),
+            ["type"] = "message",
+            ["role"] = "assistant",
+            ["status"] = "completed",
+            ["content"] = new JsonArray(new JsonObject
+            {
+                ["type"] = "output_text",
+                ["text"] = notice,
+                ["annotations"] = new JsonArray(),
+                ["logprobs"] = null
+            })
+        });
+        return NewResponse(output, model, temperature,
+            inputTokens: 0, outputTokens: Math.Max(1, notice.Length / 4), "completed");
+    }
+
+    /// <summary>
+    /// Mantem o nome que o cliente anunciou quando o apelido canonico casa
+    /// (ex.: cliente anunciou "bash"; o modelo devolveu "bash" ou "shell").
+    /// </summary>
+    private static string ResolveAnnouncedName(string canonical, IReadOnlyList<string>? announced)
+    {
+        if (announced is not { Count: > 0 }) return canonical;
+        foreach (string name in announced)
+        {
+            if (string.Equals(ResponsesTranslation.CanonToolAlias(name), canonical, StringComparison.OrdinalIgnoreCase))
+                return name;
+        }
+        return canonical;
     }
 
     /// <summary>Objeto Responses base (usado no completed e no não-stream).</summary>

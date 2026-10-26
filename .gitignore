@@ -8,3 +8,7 @@ TestResults/
 *.db
 *.db-shm
 *.db-wal
+
+# Python (fixtures de teste)
+__pycache__/
+*.pyc

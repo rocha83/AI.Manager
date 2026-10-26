@@ -1,3 +1,62 @@
+## feat(ai-manager-bridge): nucleo de protocolo independente + paridade OpenCodeBridge (main harness, tails, anti-repeat e fixes)
+
+- Date: 2026-10-25
+
+- **Strangler concluido (fatia de inteligencia)**: `Rochas.AI.Manager.Bridge`
+  deixa de referenciar Application/Domain e passa a depender so de
+  `Bridge.Contracts`; ASP.NET, CLI, Swagger, runner e cliente HTTP saem para
+  projetos proprios: `Bridge.Contracts` (DTOs/schema/canonicalizacao/checksum),
+  `Bridge.Client` (HTTP/SSE), `Bridge.Hosting` (flags/status),
+  `Bridge.Api` (REST+Swagger) e `Bridge.Runner` (console `serve`/`manifest`).
+  `Rochas.AI.Manager.slnx` e o `.gitignore` (Python) acompanham.
+- **MainHarness**: portado do OCB com substituicao do system no caminho gerido
+  (`hasProfile=false`), preservando `<env>`, `<available_skills>`,
+  `Today's date:` e instrucoes pequenas do cliente; nao troca o master do
+  opencode (`# Code Mode`, `Instructions from:`, system > 6k chars). Quando
+  aplica, as caudas de harness sao dispensadas (nucleo corretivo em um lugar so).
+- **Tails**: `HarnessTails.DefaultBehavior`/`DefaultTools`
+  (workspace/formato/escrita anti-loop/tools primeiro/persistencia) com
+  `Compose(system, harness, behavior, tools)`; os aliases `Behavior`/`Tools`
+  mantem o `BridgeFeatureSeeder` e os testes do produto.
+- **Fixes de protocolo** em `ResponsesToChat`/`ChatToResponses`/`ResponsesStream`:
+  merge de `function_call` consecutivas no MESMO turno do assistente; strip da
+  call narrada no historico com `LegacyHarness`; apelido canonico
+  `bash/sh/exec/proc -> shell` preservando o nome anunciado pelo cliente;
+  `execute`/Code Mode removidos com `ToolStrategy`; `pattern` nao ancorado
+  removido; `max_output_tokens` do cliente vence o teto; `SamplingPassthrough`
+  (`top_p`, `top_k`, `min_p`, `repeat_penalty`, `presence_penalty`,
+  `frequency_penalty`, `seed`, `typical_p`, `tfs_z`); traducao `QwenStandard`
+  OpenAI<->Alibaba nos dois sentidos (tools, `required` e argumentos).
+- **Anti-repeat (3 escopos)**: conteudo (`ContentAntiRepeat` com similaridade
+  Levenshtein, nao comparacao posicional), stream (`StreamAntiRepeatReply` com
+  `RepeatTripped`/`RepeatWhere`/`RepeatAt`) e tool-args
+  (`ToolArgsAntiRepeatReply` a partir de 1024 chars; descarta a call parcial e
+  fecha o turno com aviso). `ToolsBreaker` le `assistant.tool_calls` +
+  `role=tool`: `BreakerSoft=3` injeta nudge no ultimo resultado,
+  `BreakerHard=6` faz trip SEM chamar o upstream; alvos normalizados
+  (digitos/separadores ignorados) e assinatura canonica (`nome(args)` com JSON
+  canonicalizado) provam que `{"path":"a"}` e `{"path": "a"}` sao a mesma call.
+- **Coercao/gramatica**: `ToolCoercion` (templates `<tool_call>`, `<tools>`,
+  `<function>`, fence json, objeto cru e `[Assistant tool call]`) +
+  `ToolArgsParser` (pseudo-JS: chave sem aspas, aspas simples, virgula sobrando)
+  + `TextGrammar` (tags de controle, escapes, JSON balanceado, guardrail
+  legado). `ToolSanitizer` centraliza `execute`/Code Mode e pattern-strip.
+- **Hosts**: `Bridge.Api` expoe `/api/status`, `/health`, `/api/contract`,
+  `/api/contract/schema`, `/api/manifest/validate|dry-run`, `/v1/responses`,
+  `/v1/chat/completions` e Swagger; `Bridge.Runner` cobre `serve` e
+  `manifest validate|dry-run`. Flags novas: `--main-harness`, `--legacy-harness`,
+  `--qwen-standard`, `--no-tool-strategy`, `--sampling-passthrough`,
+  `--breaker-soft/--breaker-hard` (env `BRIDGE_*` equivalentes).
+- **Fixture de transporte**: `fake_llama.py` + `smoke.manifest.json` + README em
+  `tests/Rochas.AI.Manager.Bridge.Tests/Fixtures`, copiados no build; o E2E
+  Python so roda se `python3` existir (ausencia nao falha o transporte .NET).
+- **Docs**: `docs/ai-manager/BRIDGE-TRANSPORT.md` com camadas, harness, fixes,
+  anti-repeat, shim, gate Q4/Q3, flags e testes. `DEV-HISTORY.md` renomeado
+  para `HISTORY.md` (conteudo historico preservado).
+- **Prova**: `dotnet build Rochas.AI.Manager.slnx -c Release` = 0 erros /
+  112 warnings; `Bridge.Tests` = 98 PASS; `AI.Manager.Tests` = 97 PASS +
+  1 SKIP. O gate segue Q4 `:4124`; Q3 `:4125` e espelho pos-green, nunca gate.
+
 ## fix(bridge-engine): regra de escrita contra loop de `write` e aviso de contencao acionavel
 
 - Date: 2026-10-20

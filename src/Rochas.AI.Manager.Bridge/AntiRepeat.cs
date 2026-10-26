@@ -39,34 +39,11 @@ public static class AntiRepeat
 
     /// <summary>Assinatura canônica de uma tool call ("nome(args)") para comparar entre turnos.</summary>
     public static string ToolSignature(string? name, string? arguments)
-        => JsonOps.Normalize((name ?? "").Trim().ToLowerInvariant() + "(" + JsonOps.Normalize(arguments ?? "") + ")");
+        => ToolsAntiRepeat.Signature(name, arguments);
 
     /// <summary>Assinaturas que já apareceram <paramref name="minCount"/> vezes no histórico.</summary>
     public static HashSet<string> LoopedToolSignatures(System.Text.Json.Nodes.JsonNode? historyMessages, int minCount)
-    {
-        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-        if (historyMessages is System.Text.Json.Nodes.JsonArray messages)
-        {
-            foreach (var message in messages)
-            {
-                if (message is not System.Text.Json.Nodes.JsonObject obj) continue;
-                if (obj["tool_calls"] is not System.Text.Json.Nodes.JsonArray calls) continue;
-                foreach (var call in calls)
-                {
-                    if (call is not System.Text.Json.Nodes.JsonObject callObj) continue;
-                    if (callObj["function"] is not System.Text.Json.Nodes.JsonObject function) continue;
-                    string signature = ToolSignature(
-                        function["name"]?.GetValue<string>(),
-                        function["arguments"]?.GetValue<string>());
-                    if (signature == "()") continue;
-                    counts[signature] = counts.TryGetValue(signature, out int count) ? count + 1 : 1;
-                }
-            }
-        }
-        return new HashSet<string>(
-            counts.Where(pair => pair.Value >= minCount).Select(pair => pair.Key),
-            StringComparer.Ordinal);
-    }
+        => new RepeatedCall(minCount).Find(historyMessages);
 
     /// <summary>Similaridade 0..1 entre blocos (1 - levenshtein/tamanho).</summary>
     public static double BlockSimilarity(ReadOnlySpan<char> a, ReadOnlySpan<char> b)

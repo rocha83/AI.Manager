@@ -1,0 +1,160 @@
+using System.Text;
+
+namespace Rochas.AI.Manager.Bridge;
+
+/// <summary>
+/// Classe-mae do escopo de CONTEUDO: contem o algoritmo de repeticao de texto
+/// (normalizacao, similaridade de blocos e cauda) e a decisao <see cref="IsRepeat"/>.
+/// </summary>
+/// <remarks>
+/// A separacao e por RESPONSABILIDADE: texto repetido (thinking, content, args de
+/// tool em stream) passa por este escopo; ciclo de tool passa por
+/// <see cref="ToolsAntiRepeat"/>. Os helpers abaixo sao finos: so declaram ONDE a
+/// cauda e medida e herdam o trabalho daqui.
+/// </remarks>
+public abstract class ContentAntiRepeat
+{
+    /// <summary>Menor janela aceita: abaixo disso a comparacao vira ruido.</summary>
+    public const int MinWindow = 32;
+
+    /// <summary>Similaridade minima entre blocos consecutivos (loop curto com variacao).</summary>
+    public const double BlockSimilarity = 0.85;
+
+    /// <summary>
+    /// Janela padrao do anti-repeat de conteudo, em caracteres normalizados.
+    /// E a MESMA da bridge (`Program.AntiRepeatWindow`, faixa 64..2048, ajustavel
+    /// por `--anti-repeat-window`/`antiRepeatWindow`): a bridge manda, o Core
+    /// espelha o default e a Web consome daqui — nunca um literal proprio.
+    /// </summary>
+    public const int DefaultWindow = 256;
+
+    /// <summary>Faixa aceita para a janela no deployment (`--anti-repeat-window`).</summary>
+    public const int WindowMin = 64;
+
+    /// <summary>Teto da janela no deployment (`--anti-repeat-window`).</summary>
+    public const int WindowMax = 2048;
+
+    /// <summary>
+    /// Aviso de contencao FORTE, injetado no retry do caminho Web (ChatController):
+    /// pede para encerrar em silencio — a Web ja mostrou texto demais.
+    /// </summary>
+    public const string Notice =
+        "Aqui e a ponte de contencao OpenCodeBridge: pare de enviar o mesmo raciocinio, " +
+        "provavelmente voce entrou em repeticao invalida; quando informada a repeticao, " +
+        "nao responda mais nada, apenas encerre em silencio, obrigado.";
+
+    /// <summary>
+    /// Aviso BRANDO do retry da bridge (`--anti-repeat-notice`): avisa a possivel
+    /// repeticao e deixa o modelo reformular ou continuar se for intencional.
+    /// Fonte unica: o host so sobrescreve o texto, nunca redefine o default.
+    /// </summary>
+    public const string SoftNotice =
+        "A ponte OpenCodeBridge percebeu uma possivel repeticao nesta resposta. " +
+        "Se fizer sentido, vale reformular o raciocinio ou seguir por outro caminho; " +
+        "se a repeticao for intencional, pode continuar. Obrigado.";
+
+    /// <summary>Tamanho da cauda comparada, em caracteres normalizados.</summary>
+    public int Window { get; }
+
+    /// <summary>Onde este detector atua (vai para log/sonda).</summary>
+    public abstract string Scope { get; }
+
+    /// <summary>Cria o detector com a janela configurada (nunca menor que <see cref="MinWindow"/>).</summary>
+    /// <param name="window">Janela em caracteres.</param>
+    protected ContentAntiRepeat(int window) => Window = Math.Max(MinWindow, window);
+
+    /// <summary>O texto acumulado entrou em repeticao? (regra unica da classe-mae)</summary>
+    /// <param name="text">Texto acumulado ate aqui.</param>
+    /// <returns>True = repeticao invalida provavel.</returns>
+    public virtual bool IsRepeat(string? text) => TailRepeats(text, Window);
+
+    /// <summary>Normaliza texto para comparacao: minusculo, espacos colapsados e trim.</summary>
+    /// <param name="s">Texto cru.</param>
+    /// <returns>Texto canonico (vazio quando a entrada e vazia).</returns>
+    public static string Normalize(string? s)
+    {
+        if (string.IsNullOrEmpty(s)) return "";
+        var b = new StringBuilder(s.Length);
+        bool space = false;
+        foreach (char c in s)
+        {
+            if (char.IsWhiteSpace(c))
+            {
+                if (!space) { b.Append(' '); space = true; }
+            }
+            else
+            {
+                b.Append(char.ToLowerInvariant(c));
+                space = false;
+            }
+        }
+        return b.ToString().Trim();
+    }
+
+    /// <summary>
+    /// Similaridade 0..1 entre blocos. Usa a distancia de Levenshtein do
+    /// <see cref="AntiRepeat"/>: loops com insercao/deslocamento (ex.: "proj-001"
+    /// -> "proj-999") nao casam na comparacao posicional do legado.
+    /// </summary>
+    /// <param name="a">Bloco A.</param>
+    /// <param name="b">Bloco B.</param>
+    /// <returns>0..1 (0 quando algum bloco e vazio).</returns>
+    public static double Similarity(ReadOnlySpan<char> a, ReadOnlySpan<char> b)
+        => AntiRepeat.BlockSimilarity(a, b);
+
+    /// <summary>
+    /// Regra unica de repeticao: cauda verbatim ja vista ou 3 blocos finais
+    /// consecutivos similares (loop curto com variacao, ex.: "Ola!").
+    /// </summary>
+    /// <param name="accumulated">Texto acumulado.</param>
+    /// <param name="window">Janela comparada (chars normalizados).</param>
+    /// <returns>True = repeticao detectada.</returns>
+    public static bool TailRepeats(string? accumulated, int window)
+        => AntiRepeat.DuplicateAt(accumulated, window) >= 0;
+
+    /// <summary>Posicao (no texto normalizado) onde a cauda repetida comecou, para a sonda.</summary>
+    /// <param name="accumulated">Texto acumulado.</param>
+    /// <param name="window">Janela comparada.</param>
+    /// <returns>Indice da primeira ocorrencia da cauda, ou -1.</returns>
+    public static int TailDuplicateAt(string? accumulated, int window)
+        => AntiRepeat.DuplicateAt(accumulated, window);
+}
+
+/// <summary>
+/// Helper fino de conteudo: detector padrao de texto (herda toda a regra da
+/// classe-mae; so fixa o escopo).
+/// </summary>
+public class AntiRepeatReply : ContentAntiRepeat
+{
+    /// <summary>Cria o detector de texto.</summary>
+    /// <param name="window">Janela em caracteres.</param>
+    public AntiRepeatReply(int window) : base(window) { }
+
+    /// <inheritdoc />
+    public override string Scope => "content";
+}
+
+/// <summary>Helper fino de conteudo no STREAM: cauda dos deltas (thinking/content/SSE).</summary>
+public sealed class StreamAntiRepeatReply : AntiRepeatReply
+{
+    /// <summary>Cria o detector do stream.</summary>
+    /// <param name="window">Janela em caracteres (64..2048 na CLI).</param>
+    public StreamAntiRepeatReply(int window) : base(window) { }
+
+    /// <inheritdoc />
+    public override string Scope => "stream";
+}
+
+/// <summary>Helper fino de conteudo nos TOOL-ARGS: cauda dos argumentos de uma chamada.</summary>
+public sealed class ToolArgsAntiRepeatReply : AntiRepeatReply
+{
+    /// <summary>Tamanho minimo dos args para valer a pena sondar.</summary>
+    public const int ProbeMinChars = 1024;
+
+    /// <summary>Cria o detector de argumentos.</summary>
+    /// <param name="window">Janela em caracteres.</param>
+    public ToolArgsAntiRepeatReply(int window) : base(window) { }
+
+    /// <inheritdoc />
+    public override string Scope => "tool-args";
+}

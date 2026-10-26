@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Rochas.AI.Manager.Bridge.Runner</RootNamespace>
+    <AssemblyName>Rochas.AI.Manager.Bridge.Runner</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge\Rochas.AI.Manager.Bridge.csproj" />
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Contracts\Rochas.AI.Manager.Bridge.Contracts.csproj" />
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Hosting\Rochas.AI.Manager.Bridge.Hosting.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Rochas.AI.Manager.Bridge.Client</RootNamespace>
+    <AssemblyName>Rochas.AI.Manager.Bridge.Client</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>Rochas.AI.Manager.Bridge.Client</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Rochas</Authors>
+    <Description>Cliente HTTP/SSE tipado do AI.Manager.Bridge (status, contrato, manifesto, chat/responses e tools).</Description>
+    <PackageTags>rochas;ai-manager;bridge;client;http;sse</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Contracts\Rochas.AI.Manager.Bridge.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

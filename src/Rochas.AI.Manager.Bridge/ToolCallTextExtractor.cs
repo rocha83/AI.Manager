@@ -18,6 +18,9 @@ public static class ToolCallTextExtractor
     private static readonly Regex ReAssistant = new(@"\[Assistant tool call\]:\s*([A-Za-z_][A-Za-z0-9_.]*)\s*\(", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public static List<(string Name, string Arguments)> Extract(string? content, IReadOnlyList<string>? known = null)
+        => ToolCoercion.ExtractTextToolCalls(content ?? "", known?.ToList());
+
+    private static List<(string Name, string Arguments)> ExtractLegacy(string? content, IReadOnlyList<string>? known = null)
     {
         var calls = new List<(string, string)>();
         if (string.IsNullOrEmpty(content)) return calls;

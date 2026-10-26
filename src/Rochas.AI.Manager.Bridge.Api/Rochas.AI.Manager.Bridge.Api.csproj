@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Rochas.AI.Manager.Bridge.Api</RootNamespace>
+    <AssemblyName>Rochas.AI.Manager.Bridge.Api</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>Rochas.AI.Manager.Bridge.Api</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Rochas</Authors>
+    <Description>Host REST self-hosted do AI.Manager.Bridge com Swagger: expoe status, contrato, manifesto e /v1/* como bypass para consumidores sem referencia NuGet.</Description>
+    <PackageTags>rochas;ai-manager;bridge;rest;swagger;openapi</PackageTags>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge\Rochas.AI.Manager.Bridge.csproj" />
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Contracts\Rochas.AI.Manager.Bridge.Contracts.csproj" />
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Hosting\Rochas.AI.Manager.Bridge.Hosting.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,24 +1,64 @@
 namespace Rochas.AI.Manager.Bridge;
 
 /// <summary>
-/// Enunciados de harness (caudas) que a bridge antiga aplicava no system.
-/// São DADOS: quem manda no texto canônico é o seeder da plataforma;
-/// estes literais são o default quando não há seed/config.
+/// Caudas de inducao do harness. O texto abaixo e o fallback do motor; o
+/// deployment sobrescreve por anexo do perfil (banco) ou flags do host. O nucleo
+/// base (MainHarness) e separado: ele substitui o system do cliente no caminho
+/// gerido, enquanto as caudas sao o DELTA especifico do canal/workspace.
 /// </summary>
 public static class HarnessTails
 {
-    /// <summary>Como usar cada tool (uma chamada por resposta, shell, git/zip, números).</summary>
-    public static readonly string Tools =
-        "MODO DE USO DAS TOOLS: uma tool call por resposta; aguarde o resultado antes da proxima. Arquivos: prefira write/edit; no shell, redirecionamento (>) e pipes (|) vao via bash -c \"...\"; nunca use echo para conversar. Rede: use a tool fetch, nunca shell+curl. Git: configure user.name/user.email locais do repo antes do commit; versione com init/add/commit (commit sempre com mensagem informada). Git e zip sao comandos independentes (a ordem so importa se o enunciado pedir); se o enunciado pedir versionar E empacotar, versione primeiro e empacote depois - assim o pacote nao entra no commit. Zip: empacote com output (o arquivo .zip) e inputs (caminhos relativos ao workspace, separados por espaco), excluindo bin/obj. Tarefa de N passos: so responda texto depois de concluir TODOS - se voce anunciou um passo e ainda falta, emita a tool call em vez de texto. Se uma tool falhar, leia o erro e varie a abordagem (max 2 tentativas); nao repita a mesma chamada. Se um build/teste falhar, leia a mensagem de erro e ajuste o trecho exato antes de rodar de novo. Projetos: crie com `dotnet new` UMA vez e escreva o fonte na pasta do projeto com a tool write (nunca recrie o projeto nem use echo/heredoc). Arquivos grandes (>32kb): leia em blocos (offset+limit, ou head/tail/`sed -n 'N,Mp'`), nunca o arquivo inteiro de uma vez. Matematica sempre qualificada: C# use Math.Sin/Math.Cos/Math.Sqrt/Math.PI; F# use System.Math.Sin (ou `open System` e depois Math.Sin) — nunca `sin`/`cos`/`sqrt`/`pi` minusculos nem `open System.Math` (invalido em F#). F# NAO tem operadores OCaml (`+.`/`-.`/`*.`/`/.`) - isso quebra o build: use `+ - * /` normais (valem para float) e `%` so com int. F#: nao indexe lista com indice float (`x.[i]`); use `[0..n]` int ou `List.map (fun xi -> Math.Sin xi) xs` direto. F#: formate com `printfn \"%f\"`/`\"%.6f\"` (sintaxe `%`), NUNCA `{0:F6}` (isso e C#, quebra o F#). F#: rode com `dotnet run --project <dir>` (nunca o dll direto); use let/printfn/List.map, pipe |>, match com fallback. ANTI-ALUCINACAO: NUNCA invente comando ou ferramenta - antes de usar, confirme que existe (ex.: command -v <cmd>); servicos sao gerenciados por systemctl (nao existe service_manager nesta maquina). Se uma tool esta bloqueada para o seu role (ex.: write para Plan/MoE/Orch), nao tente contornar por shell: explique que a acao cabe a outro role. Prefira caminhos absolutos em write/read; nome com espaco quebra o glob. shell: confirme o caminho com ls antes de mv/rm. FORMATO DE EMISSAO (obrigatorio): para agir, emita a CHAMADA DE TOOL ESTRUTURADA (canal nativo de tool, com nome e argumentos JSON) - esse e o unico formato que executa; a chamada escrita no corpo como [Assistant tool call]: nome({...}), ou apenas anunciada como 'Vou usar a tool X', vira prosa, nada executa e o turno trava. FORMATACAO NUMERICA: em C# use ToString com o formato F6 e System.Globalization.CultureInfo.InvariantCulture - nunca o printf %.6f; em F# use printfn com %.6f passando o valor como argumento, pois %.6f sem argumento imprime o literal. F# NUMERICO: some com `[0..n] |> Seq.sumBy (fun i -> ...)` - a sequencia vai na MESMA expressao como argumento; nunca deixe a sequencia sozinha depois de Seq.map/Seq.choose (gera FS0193 'function value is missing arguments'). Use List.average xs e potencia com `**`; desvio = sqrt (List.average (List.map (fun v -> (v-media)**2.0) xs)). CAMINHOS RELATIVOS (sem barra inicial) em write/read; ARGUMENTOS JSON DAS TOOLS DEVEM SER VALIDOS E COMPLETOS (escape \\n em strings). DICA NUMERICA (Simpson): em [0,pi] com n subintervalos, alterne pesos 4 (indices impares) e 2 (pares) e multiplique por h/3; resultado esperado ~2.0 para n=100. Use Math.Sin/System.Math.Sin qualificado."
-        + "COMPORTAMENTO (workspace): quando o usuario informar pastas de atuacao fora do workspace, procure pastas ou arquivos citados tambem um nivel abaixo (pastas vizinhas) e na arvore de subpastas, tanto do workspace quanto dos paths citados. "
-        + "COMPORTAMENTO (formato): em conversa escreva com Unicode (setas, menor-igual, pi, somatorio) em vez de LaTeX; use $...$ somente dentro de bloco de codigo ou de formula matematica, onde o cliente renderiza. "
-        + "COMPORTAMENTO (escrita): use write UMA vez por arquivo e por conteudo; se o arquivo ja existe, correcao e edit no trecho exato (write so para arquivo novo ou reescrita integral pedida). Nunca reemita chamada com os mesmos argumentos (mesmo path + mesmo conteudo) que ja aparece no historico: antes de repetir, confirme o estado com read/grep. Se a tool retornou erro, leia a mensagem e mude os argumentos (max 2 tentativas), nunca repita identico. Nao reescreva o arquivo inteiro para corrigir uma linha."
-        ;
+    /// <summary>
+    /// Delta de comportamento da bridge. Mantido curto de proposito: o nucleo
+    /// mora no <see cref="MainHarness"/>; aqui fica o que e deste canal.
+    /// </summary>
+    public const string DefaultBehavior =
+        "COMPORTAMENTO (workspace): procure pastas/arquivos citados tambem um nivel abaixo e na arvore de subpastas, tanto do workspace quanto dos paths citados. " +
+        "COMPORTAMENTO (formato): em conversa use Unicode (setas, <=, pi, somatorio) em vez de LaTeX; use $...$ so em bloco de codigo ou formula, onde o cliente renderiza. " +
+        "COMPORTAMENTO (escrita): use write UMA vez por arquivo e por conteudo; se o arquivo ja existe, correcao e edit no trecho exato (write so para arquivo novo ou reescrita integral pedida). " +
+        "Nunca reemita chamada com os mesmos argumentos (mesmo path + mesmo conteudo) que ja aparece no historico: antes de repetir, confirme o estado com read/grep. " +
+        "Se a tool retornou erro, leia a mensagem e mude os argumentos (max 2 tentativas), nunca repita identico. Nao reescreva o arquivo inteiro para corrigir uma linha. " +
+        "TOOLS PRIMEIRO: em enunciado que pede execucao, a PRIMEIRA saida e a tool call; ZERO linha de prosa antes do primeiro disparo e nenhum texto entre uma call e a proxima. " +
+        "Excecao: no maximo 1 linha entre calls dependentes, so para indicar o proximo passo. " +
+        "So escreva ao usuario depois da ultima acao, com evidencia real (trecho de log, saida de comando). " +
+        "Se falhar, leia o erro, tente outra abordagem; apos 2 tentativas, explique a dificuldade e peca uma sugestao de proximo passo. " +
+        "PERSISTENCIA: cada resultado de tool e insumo da proxima call no MESMO turno; nao espere 'siga' e nao encerre com 'vou fazer', 'iniciando' ou confirmacao. " +
+        "PRIORIDADE: se o master mandar explicar antes de comando nao trivial, execute primeiro e mostre a saida; a explicacao, se necessaria, vem depois, em 1 linha. " +
+        "Nao se auto-apresente, nao peca confirmacao para o obvio; responda na lingua do usuario. " +
+        "Resposta final curta: no maximo 2 frases, com o que foi feito e a evidencia.";
 
-    /// <summary>Disciplina de comportamento: workspace e formato de saída.</summary>
-    public static readonly string Behavior =
-        "COMPORTAMENTO (workspace): quando o usuario informar pastas de atuacao fora do workspace, procure pastas ou arquivos citados tambem um nivel abaixo (pastas vizinhas) e na arvore de subpastas, tanto do workspace quanto dos paths citados. "
-        + "COMPORTAMENTO (formato): em conversa escreva com Unicode (setas, menor-igual, pi, somatorio) em vez de LaTeX; use $...$ somente dentro de bloco de codigo ou de formula matematica, onde o cliente renderiza. "
-        + "COMPORTAMENTO (escrita): use write UMA vez por arquivo e por conteudo; se o arquivo ja existe, correcao e edit no trecho exato (write so para arquivo novo ou reescrita integral pedida). Nunca reemita chamada com os mesmos argumentos (mesmo path + mesmo conteudo) que ja aparece no historico: antes de repetir, confirme o estado com read/grep. Se a tool retornou erro, leia a mensagem e mude os argumentos (max 2 tentativas), nunca repita identico. Nao reescreva o arquivo inteiro para corrigir uma linha."
-        ;
+    /// <summary>Como usar as tools (sem repetir o que o grammar/canal nativo ja garante).</summary>
+    public const string DefaultTools =
+        "MODO DE USO DAS TOOLS (complemento ao harness; NAO repete regra de comportamento): " +
+        "SHELL: um comando por chamada; nunca quebre linha com escape literal; para script, write + `bash <arquivo>`; `cd` NAO persiste entre chamadas — use `cd <dir> && <cmd>` na mesma call. " +
+        "GLOB: nao tem alternancia nem regex — use `**/*.{cs,js,ts,json}` ou chame glob duas vezes. " +
+        "`mkdir X && cd Y` so vale com X e Y identicos. " +
+        "GIT: `git init <dir>` SEMPRE com o diretorio explicito (nunca no cwd do workspace); o repo nasce na pasta do projeto do enunciado; confirme com `git -C <dir> rev-parse --show-toplevel`; identidade so local (`git -C <dir> config user.email/user.name`) — `--global` proibido; se vier 'unknown option'/'usage:', leia a sintaxe e nao repita a chamada. " +
+        "DOTNET: com mais de um projeto na pasta, `--project <pasta>` e ambiguo ('contains more than one project file'): aponte o ARQUIVO (`<dir>/<nome>.fsproj` ou `.csproj`). " +
+        "F#: o entrypoint e `module Program` em Program.fs; o assembly e o nome do .fsproj. " +
+        "PROJETO EXISTENTE: edite os arquivos do projeto; `dotnet new` so em pasta vazia (criar segundo .csproj/.fsproj na mesma pasta quebra `dotnet run --project <pasta>`: 'contem mais de um arquivo de projeto').";
+
+    /// <summary>Alias de compatibilidade: cauda de comportamento canonica.</summary>
+    public static string Behavior => DefaultBehavior;
+
+    /// <summary>Alias de compatibilidade: cauda de tools canonica.</summary>
+    public static string Tools => DefaultTools;
+
+    /// <summary>
+    /// Compõe o system prompt com as caudas. Com harness desligado devolve o
+    /// texto original (tubo puro do OpenCode).
+    /// </summary>
+    /// <param name="system">System prompt original.</param>
+    /// <param name="harness">Liga/desliga as caudas.</param>
+    /// <param name="behavior">Cauda de comportamento (pode ser vazia).</param>
+    /// <param name="tools">Cauda de tools (pode ser vazia).</param>
+    /// <returns>System prompt composto.</returns>
+    public static string Compose(string? system, bool harness, string? behavior, string? tools)
+    {
+        if (!harness) return system ?? "";
+        string text = (system ?? "").Trim();
+        if (!string.IsNullOrWhiteSpace(behavior)) text = (text.Length > 0 ? text + "\n\n" : "") + behavior;
+        if (!string.IsNullOrWhiteSpace(tools)) text = (text.Length > 0 ? text + "\n\n" : "") + tools;
+        return text;
+    }
 }

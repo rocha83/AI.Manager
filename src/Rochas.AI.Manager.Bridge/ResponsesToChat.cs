@@ -14,6 +14,12 @@ public sealed class ChatRequestResult
     public IReadOnlyList<string> AnnouncedTools { get; init; } = Array.Empty<string>();
     public IReadOnlyList<string> DroppedTools { get; init; } = Array.Empty<string>();
     public IReadOnlyList<string> PatternHits { get; init; } = Array.Empty<string>();
+
+    /// <summary>Aviso do breaker: quando preenchido, o turno NAO chama o modelo.</summary>
+    public string? BreakerTrip { get; init; }
+
+    /// <summary>Mensagens chat do request: historico para detectar chamada repetida.</summary>
+    public JsonArray HistoryMessages { get; init; } = new();
 }
 
 /// <summary>
@@ -35,11 +41,26 @@ public static class ResponsesToChat
         string thinking = string.IsNullOrEmpty(serverThinking) ? options.Thinking : serverThinking;
 
         var messages = InputToMessages(request["input"], request["instructions"], options);
-        ApplyTails(messages, options);
+        bool mainApplied = MainHarness.Apply(messages, options.HasProfile, options.MainHarness);
+        if (!mainApplied) ApplyTails(messages, options);
+
+        string? breakerTrip = null;
+        if (options.BreakerSoft > 0)
+        {
+            var breaker = new ToolsBreaker(options.BreakerSoft, options.BreakerHard);
+            var verdict = breaker.Evaluate(messages);
+            if (verdict.Verdict == BreakerVerdict.Trip) breakerTrip = verdict.Notice;
+            else if (verdict.Verdict == BreakerVerdict.Nudge) breaker.ApplyNudge(messages, verdict.Notice);
+        }
 
         var tools = ToolsToChat(request["tools"], out var dropped, out _);
         var patternHits = new List<string>();
-        if (tools is not null) StripUnanchoredPatterns(tools, "$", patternHits);
+        if (tools is not null)
+        {
+            if (options.ToolStrategy) ToolSanitizer.StripExecuteTools(tools, true, "responses");
+            if (options.QwenStandard) QwenStandard.TranslateToolsForUpstream(tools);
+            StripUnanchoredPatterns(tools, "$", patternHits);
+        }
 
         bool wantThinking = thinking == "events";
         if (request["chat_template_kwargs"]?["enable_thinking"] is JsonValue enabled
@@ -56,13 +77,19 @@ public static class ResponsesToChat
             ["stream"] = false,
             ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = wantThinking }
         };
-        if (options.MaxTokens > 0) body["max_tokens"] = options.MaxTokens;
+        int maxTokens = request["max_output_tokens"] is JsonValue maxNode
+            && maxNode.TryGetValue<int>(out int requestedMax) && requestedMax > 0
+                ? requestedMax
+                : options.MaxTokens;
+        if (maxTokens > 0) body["max_tokens"] = maxTokens;
         if (tools is { Count: > 0 })
         {
             body["tools"] = tools;
             body["tool_choice"] = "auto";
         }
         if (request["stop"] is JsonNode stop && HasStop(stop)) body["stop"] = stop.DeepClone();
+        if (options.SamplingPassthrough) Sampling.CopyPassthrough(request, body);
+        if (options.ToolStrategy) ToolSanitizer.NeutralizeCodeMode(body, true);
 
         return new ChatRequestResult
         {
@@ -73,7 +100,9 @@ public static class ResponsesToChat
             HadTools = request["tools"] is JsonArray { Count: > 0 },
             AnnouncedTools = AnnouncedTools(request["tools"] as JsonArray),
             DroppedTools = dropped,
-            PatternHits = patternHits
+            PatternHits = patternHits,
+            BreakerTrip = breakerTrip,
+            HistoryMessages = messages
         };
     }
 
@@ -129,6 +158,12 @@ public static class ResponsesToChat
                         continue;
                     }
                     if (role is not ("user" or "assistant")) role = "user";
+                    // O opencode reenvia a call TAMBEM como texto. Mantido no
+                    // historico, o modelo copia o formato narrado em vez de emitir
+                    // a call nativa; a estruturada continua logo abaixo.
+                    if (role == "assistant" && options.LegacyHarness && !options.HasProfile)
+                        content = TextGrammar.StripNarratedCalls(content);
+                    if (string.IsNullOrWhiteSpace(content)) continue;
                     messages.Add(new JsonObject { ["role"] = role, ["content"] = content });
                     break;
                 }
@@ -139,21 +174,35 @@ public static class ResponsesToChat
                     string callId = entry["call_id"]?.GetValue<string>()
                                     ?? entry["id"]?.GetValue<string>()
                                     ?? ("call_" + JsonOps.NewId());
-                    messages.Add(new JsonObject
+                    var call = new JsonObject
                     {
-                        ["role"] = "assistant",
-                        ["content"] = null,
-                        ["tool_calls"] = new JsonArray(new JsonObject
+                        ["id"] = callId,
+                        ["type"] = "function",
+                        ["function"] = new JsonObject
                         {
-                            ["id"] = callId,
-                            ["type"] = "function",
-                            ["function"] = new JsonObject
-                            {
-                                ["name"] = entry["name"]?.GetValue<string>() ?? "",
-                                ["arguments"] = JsonOps.ToArguments(entry["arguments"])
-                            }
-                        })
-                    });
+                            ["name"] = entry["name"]?.GetValue<string>() ?? "",
+                            ["arguments"] = JsonOps.ToArguments(entry["arguments"])
+                        }
+                    };
+                    // Chamadas consecutivas sao UM turno do assistente (N tool_calls
+                    // no mesmo item). Sem o merge o template upstream ve N turnos de
+                    // 1 call e o modelo perde a conta de "ja chamei isto na rodada".
+                    if (messages.Count > 0 && messages[^1] is JsonObject previous
+                        && previous["role"]?.GetValue<string>() == "assistant"
+                        && previous["content"] is null
+                        && previous["tool_calls"] is JsonArray previousCalls)
+                    {
+                        previousCalls.Add(call);
+                    }
+                    else
+                    {
+                        messages.Add(new JsonObject
+                        {
+                            ["role"] = "assistant",
+                            ["content"] = null,
+                            ["tool_calls"] = new JsonArray(call)
+                        });
+                    }
                     break;
                 }
                 case "function_call_output":
@@ -183,8 +232,12 @@ public static class ResponsesToChat
     {
         if (systemText.Length == 0) return;
         string text = systemText.ToString();
-        if (!string.IsNullOrWhiteSpace(options.SystemGuardrail)
-            && !text.Contains(options.SystemGuardrail, StringComparison.OrdinalIgnoreCase))
+        if (options.LegacyHarness || options.QwenStandard)
+        {
+            text = TextGrammar.WithSystemGuardrail(text, options.QwenStandard);
+        }
+        else if (!string.IsNullOrWhiteSpace(options.SystemGuardrail)
+                 && !text.Contains(options.SystemGuardrail, StringComparison.OrdinalIgnoreCase))
         {
             text = text + "\n\n" + options.SystemGuardrail;
         }
