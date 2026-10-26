@@ -18,4 +18,12 @@ public sealed class Experiment : BaseEntity
     public string Status { get; set; } = "Planned";
     [Column("rejection_reason")]
     public string? RejectionReason { get; set; }
+
+    /// <summary>Tipo do experimento: <c>Training</c> (SFT/DPO/RM) ou <c>Test</c> (WAR).</summary>
+    [Column("kind")]
+    public string Kind { get; set; } = "Training";
+
+    /// <summary>Enunciado do experimento de teste (o mesmo do manifesto).</summary>
+    [Column("statement")]
+    public string? Statement { get; set; }
 }

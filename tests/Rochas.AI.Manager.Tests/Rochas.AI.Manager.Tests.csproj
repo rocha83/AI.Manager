@@ -19,6 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\Data\Seeds\war-baseline.json"
+          Link="Seeds\war-baseline.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Rochas.AI.Manager.Domain\Rochas.AI.Manager.Domain.csproj" />
     <ProjectReference Include="..\..\src\Rochas.AI.Manager.Application\Rochas.AI.Manager.Application.csproj" />
     <ProjectReference Include="..\..\src\Rochas.AI.Manager.Bridge\Rochas.AI.Manager.Bridge.csproj" />

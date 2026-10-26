@@ -12,10 +12,25 @@ public static class AppDb
     public static void Init(string? path = null)
     {
         Path = path ?? System.IO.Path.Combine(AppContext.BaseDirectory, "ai.manager.db");
-        var dir = System.IO.Path.GetDirectoryName(Path);
-        if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
+        EnsureDatabase(Path);
+    }
 
-        using var conn = new SqliteConnection(ConnectionString);
+    /// <summary>
+    /// Cria/atualiza o schema em um arquivo e devolve a connection string, SEM
+    /// trocar o banco global. Usado pelo TestBench (db temporario) e por testes
+    /// que nao podem mutar <see cref="Path"/>.
+    /// </summary>
+    public static string EnsureDatabase(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            throw new ArgumentException("caminho do banco obrigatorio", nameof(path));
+
+        var dir = System.IO.Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+            System.IO.Directory.CreateDirectory(dir);
+
+        string connectionString = $"Data Source={path};Cache=Shared";
+        using var conn = new SqliteConnection(connectionString);
         conn.Open();
         using (var prag = conn.CreateCommand())
         {
@@ -43,8 +58,40 @@ public static class AppDb
             CREATE TABLE IF NOT EXISTS entity_statuses (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, description TEXT);
             CREATE TABLE IF NOT EXISTS workflow_steps (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, entity_hash_code INTEGER NOT NULL DEFAULT 0, sort_order INTEGER NOT NULL DEFAULT 0, status_id INTEGER NOT NULL DEFAULT 0, next_status_id INTEGER NOT NULL DEFAULT 0, custom_rule TEXT);
             CREATE TABLE IF NOT EXISTS workflow_transitions (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, entity_hash_code INTEGER NOT NULL DEFAULT 0, entity_id INTEGER NOT NULL, entity_status_from INTEGER NOT NULL DEFAULT 0, entity_status_to INTEGER NOT NULL DEFAULT 0, action TEXT NOT NULL DEFAULT 'Submit', approver_id INTEGER NOT NULL DEFAULT 0, note TEXT);
+            CREATE TABLE IF NOT EXISTS experiment_plans (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, experiment_id INTEGER NOT NULL DEFAULT 0, source_commit TEXT NOT NULL DEFAULT '', manifest_hash TEXT NOT NULL DEFAULT '', manifest_json TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'Draft', statement TEXT, target TEXT NOT NULL DEFAULT 'q4');
+            CREATE TABLE IF NOT EXISTS circuit_stages (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, plan_id INTEGER NOT NULL DEFAULT 0, key TEXT NOT NULL DEFAULT '', title TEXT, sort_order INTEGER NOT NULL DEFAULT 0, max_parallel_steps INTEGER NOT NULL DEFAULT 1, on_failure TEXT NOT NULL DEFAULT 'continue', gate_policy_json TEXT);
+            CREATE TABLE IF NOT EXISTS circuit_steps (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, stage_id INTEGER NOT NULL DEFAULT 0, key TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL DEFAULT 'native', command TEXT, args_json TEXT, env_json TEXT, timeout_sec INTEGER NOT NULL DEFAULT 0, depends_on_json TEXT, scenario_selector_json TEXT, verdict_parser TEXT, sort_order INTEGER NOT NULL DEFAULT 0);
+            CREATE TABLE IF NOT EXISTS test_scenarios (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, plan_id INTEGER NOT NULL DEFAULT 0, key TEXT NOT NULL DEFAULT '', title TEXT, prompt TEXT NOT NULL DEFAULT '', system_prompt TEXT, workspace_json TEXT, model_json TEXT, tools_json TEXT, loop_json TEXT, assertions_json TEXT, tags TEXT, weight INTEGER NOT NULL DEFAULT 1);
+            CREATE TABLE IF NOT EXISTS runner_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, runner_id TEXT NOT NULL DEFAULT 'q4', bridge_url TEXT NOT NULL DEFAULT '', upstream_url TEXT NOT NULL DEFAULT '', model_id TEXT NOT NULL DEFAULT '', context_window INTEGER NOT NULL DEFAULT 0, max_tokens INTEGER NOT NULL DEFAULT 0, is_gate INTEGER NOT NULL DEFAULT 1, is_mirror INTEGER NOT NULL DEFAULT 0, capabilities_json TEXT);
+            CREATE TABLE IF NOT EXISTS test_runs (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, plan_id INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'Running', gate TEXT NOT NULL DEFAULT 'Pending', started_at TEXT, finished_at TEXT, result_json TEXT, evidence_hash TEXT);
+            CREATE TABLE IF NOT EXISTS test_stage_runs (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, run_id INTEGER NOT NULL DEFAULT 0, stage_key TEXT NOT NULL DEFAULT '', verdict TEXT NOT NULL DEFAULT 'SKIP', seconds REAL NOT NULL DEFAULT 0, cause TEXT);
+            CREATE TABLE IF NOT EXISTS test_step_runs (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, run_id INTEGER NOT NULL DEFAULT 0, stage_key TEXT NOT NULL DEFAULT '', step_key TEXT NOT NULL DEFAULT '', verdict TEXT NOT NULL DEFAULT 'SKIP', seconds REAL NOT NULL DEFAULT 0, exit_code INTEGER, cause TEXT);
+            CREATE TABLE IF NOT EXISTS test_scenario_runs (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, run_id INTEGER NOT NULL DEFAULT 0, scenario_key TEXT NOT NULL DEFAULT '', verdict TEXT NOT NULL DEFAULT 'SKIP', seconds REAL NOT NULL DEFAULT 0, files_created INTEGER NOT NULL DEFAULT 0, total_chars INTEGER NOT NULL DEFAULT 0, detail TEXT);
+            CREATE TABLE IF NOT EXISTS test_evidence (id INTEGER PRIMARY KEY AUTOINCREMENT, parent_id INTEGER, code TEXT, name TEXT NOT NULL DEFAULT '', is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, run_id INTEGER NOT NULL DEFAULT 0, kind TEXT NOT NULL DEFAULT 'log', path TEXT NOT NULL DEFAULT '', sha256 TEXT NOT NULL DEFAULT '', bytes INTEGER NOT NULL DEFAULT 0);
+            CREATE INDEX IF NOT EXISTS ix_experiment_plans_key ON experiment_plans(source_commit, manifest_hash);
+            CREATE INDEX IF NOT EXISTS ix_circuit_stages_plan ON circuit_stages(plan_id);
+            CREATE INDEX IF NOT EXISTS ix_circuit_steps_stage ON circuit_steps(stage_id);
+            CREATE INDEX IF NOT EXISTS ix_test_scenarios_plan ON test_scenarios(plan_id);
+            CREATE INDEX IF NOT EXISTS ix_test_runs_plan ON test_runs(plan_id);
+            CREATE INDEX IF NOT EXISTS ix_test_steps_run ON test_step_runs(run_id);
+            CREATE INDEX IF NOT EXISTS ix_test_scenarios_run ON test_scenario_runs(run_id);
             """;
         cmd.ExecuteNonQuery();
+        // Migracao: tipo/enunciado do experimento (Training vs Test) — F2.
+        try
+        {
+            using var alterKind = conn.CreateCommand();
+            alterKind.CommandText = "ALTER TABLE experiments ADD COLUMN kind TEXT NOT NULL DEFAULT 'Training';";
+            alterKind.ExecuteNonQuery();
+        }
+        catch { /* coluna ja existe */ }
+        try
+        {
+            using var alterStatement = conn.CreateCommand();
+            alterStatement.CommandText = "ALTER TABLE experiments ADD COLUMN statement TEXT;";
+            alterStatement.ExecuteNonQuery();
+        }
+        catch { /* coluna ja existe */ }
         // Migracao: garantir coluna training_method em DBs antigos
         try
         {
@@ -61,5 +108,7 @@ public static class AppDb
             alterCoercion.ExecuteNonQuery();
         }
         catch { /* coluna ja existe */ }
+
+        return connectionString;
     }
 }

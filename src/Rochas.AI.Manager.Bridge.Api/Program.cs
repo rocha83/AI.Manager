@@ -5,6 +5,7 @@ using Rochas.AI.Manager.Bridge.Contracts;
 using Rochas.AI.Manager.Bridge.Flow;
 using Rochas.AI.Manager.Bridge.Hosting;
 using Rochas.AI.Manager.Bridge.Transport;
+using Rochas.AI.Manager.Bridge.Tools;
 
 var options = BridgeHostOptions.Parse(args);
 if (options.ShowHelp)
@@ -108,6 +109,21 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// Contadores de transporte: nao alteram a resposta; alimentam /api/metrics.
+app.Use(async (context, next) =>
+{
+    BridgeMetrics.Inc("http.requests");
+    try
+    {
+        await next();
+    }
+    catch
+    {
+        BridgeMetrics.Inc("http.errors");
+        throw;
+    }
+});
+
 app.MapGet("/api/status", () => Results.Json(BridgeComponent.Status(options, startedAt)))
     .WithTags("Componente")
     .WithName("GetStatus");
@@ -161,6 +177,204 @@ app.MapPost("/api/manifest/dry-run", (BridgeManifest? manifest) =>
 })
 .WithTags("Manifesto")
 .WithName("DryRunManifest");
+
+// ---------------------------------------------------------------------------
+// F1 — paridade de artefatos do host: tools, endpoints e configuracao.
+// ---------------------------------------------------------------------------
+
+app.MapGet("/api/tools", () => Results.Json(new
+{
+    chat = ToolCatalog.Chat(),
+    responses = ToolCatalog.Responses(),
+    names = new[] { "shell", "read", "write", "edit", "grep", "glob", "fetch", "git", "subagent" }
+}))
+.WithTags("Tools")
+.WithName("ListTools");
+
+app.MapPost("/api/tools/execute", (BridgeToolRequest? request) =>
+{
+    if (request is null || string.IsNullOrWhiteSpace(request.Name))
+        return Results.BadRequest(new { error = "name required" });
+
+    string workspace = string.IsNullOrWhiteSpace(request.WorkspaceRoot)
+        ? options.ArtifactRoot ?? Environment.CurrentDirectory
+        : request.WorkspaceRoot!;
+    if (!Path.IsPathRooted(workspace) || !Directory.Exists(workspace))
+        return Results.BadRequest(new { error = $"workspace invalido: {workspace}" });
+
+    var executor = new BridgeToolExecutor(
+        workspace, options.UpstreamUrl, options.ApiKey ?? "", request.Role ?? "");
+    return Results.Json(executor.Execute(request));
+})
+.WithTags("Tools")
+.WithName("ExecuteTool");
+
+app.MapGet("/api/harness", () => Results.Json(new
+{
+    main = MainHarness.Text,
+    behavior = string.IsNullOrWhiteSpace(bridgeOptions.BehaviorTail) ? HarnessTails.Behavior : bridgeOptions.BehaviorTail,
+    tools = string.IsNullOrWhiteSpace(bridgeOptions.ToolsTail) ? HarnessTails.Tools : bridgeOptions.ToolsTail,
+    harness = bridgeOptions.Harness,
+    mainHarness = bridgeOptions.MainHarness,
+    tailScope = bridgeOptions.TailScope,
+    legacy = bridgeOptions.LegacyHarness,
+    qwenStandard = bridgeOptions.QwenStandard
+}))
+.WithTags("Componente")
+.WithName("GetHarness");
+
+app.MapGet("/api/metrics", () => Results.Json(new
+{
+    uptimeSec = (long)(DateTimeOffset.UtcNow - startedAt).TotalSeconds,
+    startedAt,
+    transport = BridgeMetrics.Snapshot(),
+    tools = ToolMetrics.Snapshot()
+}))
+.WithTags("Componente")
+.WithName("GetMetrics");
+
+app.MapPost("/api/permission/check", (JsonElement body) =>
+{
+    string model = ReadString(body, "model") ?? "";
+    string tool = ReadString(body, "tool") ?? "";
+    string args = ReadString(body, "args") ?? "";
+    if (string.IsNullOrWhiteSpace(tool))
+        return Results.BadRequest(new { error = "tool required" });
+    var (action, reason) = PermissionPolicy.Check(model, tool, args);
+    return Results.Json(new { action, reason = reason ?? "" });
+})
+.WithTags("Componente")
+.WithName("PermissionCheck");
+
+app.MapPost("/api/translate", (JsonElement body) =>
+{
+    if (!TryParseObject(body, out var request))
+        return Results.BadRequest(new { error = "json object required" });
+
+    // Aceita { request: {...}, model: "..." } ou o proprio request Responses.
+    var source = request["request"] is JsonObject inner ? inner : request;
+    string model = request["model"]?.GetValue<string>()
+        ?? source["model"]?.GetValue<string>()
+        ?? options.ModelId;
+    var converted = ResponsesToChat.Convert(source, bridgeOptions, model);
+    return Results.Json(new
+    {
+        model,
+        body = converted.Body,
+        temperature = converted.Temperature,
+        thinking = converted.Thinking,
+        hadTools = converted.HadTools,
+        announcedTools = converted.AnnouncedTools,
+        droppedTools = converted.DroppedTools,
+        patternHits = converted.PatternHits,
+        breakerTrip = converted.BreakerTrip
+    });
+})
+.WithTags("Protocolo")
+.WithName("TranslateResponsesToChat");
+
+app.MapPost("/api/sanitize", (JsonElement body) =>
+{
+    if (!TryParseObject(body, out var request))
+        return Results.BadRequest(new { error = "json object required" });
+    if (request["tools"] is not JsonNode tools)
+        return Results.BadRequest(new { error = "tools required" });
+
+    var hits = new List<string>();
+    int patterns = ToolSanitizer.StripUnanchoredPatterns(tools, "$", hits);
+    bool enabled = request["enabled"] is not JsonValue ev
+        || !ev.TryGetValue<bool>(out bool flag) || flag;
+    int execute = ToolSanitizer.StripExecuteTools(tools, enabled, "api", null);
+    return Results.Json(new
+    {
+        tools,
+        strippedPatterns = patterns,
+        patternPaths = hits,
+        strippedExecute = execute
+    });
+})
+.WithTags("Protocolo")
+.WithName("SanitizeTools");
+
+app.MapPost("/api/convert", (JsonElement body) =>
+{
+    if (!TryParseObject(body, out var request))
+        return Results.BadRequest(new { error = "json object required" });
+
+    var chat = request["chat"] as JsonObject ?? new JsonObject();
+    string model = request["model"]?.GetValue<string>() ?? options.ModelId;
+    double temperature = request["temperature"]?.GetValue<double>() ?? bridgeOptions.Temperature;
+    var converted = ChatToResponses.Convert(chat, model, temperature, bridgeOptions);
+    return Results.Json(converted);
+})
+.WithTags("Protocolo")
+.WithName("ConvertChatToResponses");
+
+app.MapGet("/api/config", () => Results.Json(new
+{
+    host = new
+    {
+        options.Port,
+        options.Listen,
+        options.BaseUrl,
+        options.UpstreamUrl,
+        options.ModelId,
+        options.IsGate,
+        options.ArtifactRoot,
+        options.ContextWindow,
+        options.MaxTokens
+    },
+    engine = new BridgeOptionsContract
+    {
+        Thinking = bridgeOptions.Thinking,
+        Temperature = bridgeOptions.Temperature,
+        StreamPerDelta = bridgeOptions.StreamPerDelta,
+        AntiRepeat = bridgeOptions.AntiRepeat,
+        AntiRepeatRetry = bridgeOptions.AntiRepeatRetry,
+        AntiRepeatNotice = bridgeOptions.AntiRepeatNotice,
+        AntiRepeatWindow = bridgeOptions.AntiRepeatWindow,
+        MaxTokens = bridgeOptions.MaxTokens,
+        ToolOutputLimit = bridgeOptions.ToolOutputLimit,
+        Harness = bridgeOptions.Harness,
+        ToolsTail = bridgeOptions.ToolsTail,
+        BehaviorTail = bridgeOptions.BehaviorTail,
+        CoerceNarrated = bridgeOptions.ToolStrategy,
+        ContextGuard = bridgeOptions.LegacyHarness,
+        ContextTokens = bridgeOptions.ContextTokens,
+        ToolShimMode = bridgeOptions.ToolShimMode,
+        ToolShimMaxString = bridgeOptions.ToolShimMaxString,
+        ToolShimMinCalls = bridgeOptions.ToolShimMinCalls
+    }
+}))
+.WithTags("Componente")
+.WithName("GetConfig");
+
+// /v1/models: passthrough do upstream (o cliente descobre o modelo servido).
+app.MapGet("/v1/models", async (CancellationToken ct) =>
+{
+    using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+    var request = new HttpRequestMessage(
+        HttpMethod.Get, options.UpstreamUrl.TrimEnd('/') + "/v1/models");
+    if (!string.IsNullOrWhiteSpace(options.ApiKey))
+        request.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
+    try
+    {
+        using var response = await http.SendAsync(request, ct);
+        string raw = await response.Content.ReadAsStringAsync(ct);
+        if (!response.IsSuccessStatusCode)
+            return Results.Json(
+                new { error = $"upstream HTTP {(int)response.StatusCode}", upstream = raw },
+                statusCode: StatusCodes.Status502BadGateway);
+        return Results.Content(raw, "application/json");
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { error = ex.Message }, statusCode: StatusCodes.Status502BadGateway);
+    }
+})
+.WithTags("Protocolo")
+.WithName("ListModels");
 
 app.MapPost("/v1/responses", async (
     JsonElement body,
@@ -305,4 +519,16 @@ static bool TryParseObject(JsonElement body, out JsonObject request)
     if (body.ValueKind != JsonValueKind.Object) return false;
     request = JsonNode.Parse(body.GetRawText())?.AsObject() ?? new JsonObject();
     return true;
+}
+
+static string? ReadString(JsonElement body, string name)
+{
+    if (body.ValueKind != JsonValueKind.Object) return null;
+    if (!body.TryGetProperty(name, out var element)) return null;
+    return element.ValueKind switch
+    {
+        JsonValueKind.String => element.GetString(),
+        JsonValueKind.Null or JsonValueKind.Undefined => null,
+        _ => element.GetRawText()
+    };
 }

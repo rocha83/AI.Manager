@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Rochas.AI.Manager.Domain\Rochas.AI.Manager.Domain.csproj" />
     <ProjectReference Include="..\Rochas.AI.Manager.Application\Rochas.AI.Manager.Application.csproj" />
+    <ProjectReference Include="..\Rochas.AI.Manager.Bridge.Contracts\Rochas.AI.Manager.Bridge.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

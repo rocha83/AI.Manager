@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "1.0",
+  "sourceCommit": "war-baseline-2026-10-26",
+  "sourceRepository": "rocha83/OpenCodeBridge",
+  "createdAt": "2026-10-26T00:00:00+00:00",
+  "manifest": {
+    "schemaVersion": "1.0",
+    "experiment": {
+      "id": 1,
+      "version": 1,
+      "name": "WAR L1 — build belts (azul/verde)",
+      "statement": "Os belts L1 da trilha build viram dados do workflow: mesmo enunciado, mesmo aceite, executados pelo Bridge com tools reais e evidencia por cenario."
+    },
+    "runner": {
+      "id": "ai-manager-bridge",
+      "capabilities": [
+        "native-scenario",
+        "tools",
+        "anti-repeat",
+        "harness",
+        "manifest-dry-run"
+      ]
+    },
+    "target": {
+      "bridgeUrl": "http://127.0.0.1:4124",
+      "upstreamUrl": "http://127.0.0.1:4100",
+      "modelId": "",
+      "contextWindow": 131072,
+      "maxTokens": 16384,
+      "isGate": true
+    },
+    "harness": {
+      "profileVersionId": 1,
+      "mode": "BridgeManaged"
+    },
+    "stages": [
+      {
+        "key": "belts-build-l1",
+        "title": "L1 — belts build",
+        "order": 1,
+        "maxParallelSteps": 1,
+        "onFailure": "stop",
+        "gate": {
+          "policy": "default",
+          "allowedCauses": []
+        },
+        "builds": [],
+        "preflight": [
+          {
+            "kind": "bridge-status",
+            "timeoutSec": 15
+          }
+        ],
+        "steps": [
+          {
+            "key": "azul-build",
+            "kind": "native",
+            "timeoutSec": 3600,
+            "scenarioSelector": {
+              "suite": "L1-build",
+              "cases": ["azul-build"]
+            }
+          },
+          {
+            "key": "verde-build",
+            "kind": "native",
+            "timeoutSec": 3600,
+            "dependsOn": ["azul-build"],
+            "scenarioSelector": {
+              "suite": "L1-build",
+              "cases": ["verde-build"]
+            }
+          }
+        ]
+      }
+    ],
+    "scenarios": [
+      {
+        "key": "azul-build",
+        "title": "L1 azul — repositorio generico com ORM",
+        "prompt": "Crie no backend .NET C# uma consulta de dados em uma tabela (ex.: reembolsos corporativos) usando repositorio generico com ORM. Escopo SOMENTE backend de dados (sem frontend, sem API). Premissas: backend .NET C#. Divida a implementacao em etapas, dialogo em pt-br. Critério de aceite, solução implementada, codificada em arquivos no disco e compilando: crie arquivos .cs com as classes, interfaces e repositorios.",
+        "systemPrompt": "Voce e um arquiteto desenvolvedor backend C# senior (DDD/SOLID). Execute a tarefa no workspace usando as tools reais; nao narre a acao sem executa-la.",
+        "workspace": {
+          "template": "/tmp/opencode/aim-belts/{case}",
+          "clean": true
+        },
+        "model": {
+          "role": "build",
+          "temperature": 0.3,
+          "thinking": "off",
+          "maxTokens": 8192
+        },
+        "tools": {
+          "mode": "required",
+          "allow": ["write", "read", "edit", "shell", "glob", "grep"],
+          "toolChoice": "write"
+        },
+        "loop": {
+          "maxTurns": 12,
+          "maxNudges": 2,
+          "review": true,
+          "stallLimit": 3
+        },
+        "assertions": [
+          {
+            "type": "fileCountAtLeast",
+            "value": 3,
+            "required": true
+          },
+          {
+            "type": "fileExtensionCountAtLeast",
+            "ext": ".cs",
+            "value": 2,
+            "required": true
+          },
+          {
+            "type": "totalCharsAtLeast",
+            "value": 2000,
+            "required": true
+          },
+          {
+            "type": "noProseBeforeTool",
+            "required": false
+          }
+        ],
+        "tags": ["L1", "build", "azul", "orm"],
+        "weight": 1
+      },
+      {
+        "key": "verde-build",
+        "title": "L1 verde — dominio + banco SQL de CRUD",
+        "prompt": "Especifique o dominio backend C# de um CRUD de reembolsos corporativos (entidades, value objects, regras de aprovacao por faixa de valor) e o banco de dados SQL: DDL das tabelas, indices, constraints e seeds. Valide CPF e CNPJ. Escopo: dominio + banco SQL. Premissas: backend .NET C#. Divida a implementacao em etapas, dialogo em pt-br. Critério de aceite, solução implementada, codificada em arquivos no disco e compilando: arquivos .cs (entidades/VOs) e .sql (DDL).",
+        "systemPrompt": "Voce e um arquiteto desenvolvedor backend C# senior (DDD/SOLID) com foco em modelagem SQL. Execute a tarefa no workspace usando as tools reais.",
+        "workspace": {
+          "template": "/tmp/opencode/aim-belts/{case}",
+          "clean": true
+        },
+        "model": {
+          "role": "build",
+          "temperature": 0.3,
+          "thinking": "off",
+          "maxTokens": 8192
+        },
+        "tools": {
+          "mode": "required",
+          "allow": ["write", "read", "edit", "shell", "glob", "grep"],
+          "toolChoice": "write"
+        },
+        "loop": {
+          "maxTurns": 12,
+          "maxNudges": 2,
+          "review": true,
+          "stallLimit": 3
+        },
+        "assertions": [
+          {
+            "type": "fileCountAtLeast",
+            "value": 3,
+            "required": true
+          },
+          {
+            "type": "fileExtensionCountAtLeast",
+            "ext": ".cs",
+            "value": 2,
+            "required": true
+          },
+          {
+            "type": "fileExtensionCountAtLeast",
+            "ext": ".sql",
+            "value": 1,
+            "required": true
+          },
+          {
+            "type": "totalCharsAtLeast",
+            "value": 2500,
+            "required": true
+          }
+        ],
+        "tags": ["L1", "build", "verde", "sql"],
+        "weight": 1
+      }
+    ]
+  },
+  "runners": [
+    {
+      "id": "q4",
+      "name": "Q4 gate (:4124)",
+      "bridgeUrl": "http://127.0.0.1:4124",
+      "upstreamUrl": "http://127.0.0.1:4100",
+      "modelId": "",
+      "contextWindow": 131072,
+      "maxTokens": 16384,
+      "isGate": true,
+      "isMirror": false,
+      "capabilities": ["native-scenario", "tools", "anti-repeat", "harness", "manifest-dry-run"]
+    },
+    {
+      "id": "q3",
+      "name": "Q3 espelho (:4125)",
+      "bridgeUrl": "http://127.0.0.1:4125",
+      "upstreamUrl": "http://127.0.0.1:4110",
+      "modelId": "",
+      "contextWindow": 114688,
+      "maxTokens": 16384,
+      "isGate": false,
+      "isMirror": true,
+      "capabilities": ["native-scenario", "tools", "anti-repeat", "harness", "manifest-dry-run"]
+    }
+  ]
+}

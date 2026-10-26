@@ -1,0 +1,90 @@
+using System.Diagnostics;
+using System.Text;
+
+namespace Rochas.AI.Manager.Bridge.Tools;
+
+/// <summary>
+/// Execucao de processos com timeout e morte da arvore (infra compartilhada
+/// entre shell, git e demais handlers que disparam binarios).
+/// </summary>
+public static class ProcessRunner
+{
+    /// <summary>Roda um binario com argumentos e devolve stdout/stderr combinados.</summary>
+    /// <param name="exe">Binario (nome ou caminho absoluto).</param>
+    /// <param name="args">Argumentos ja separados (sem shell).</param>
+    /// <param name="workingDirectory">Diretorio de trabalho.</param>
+    /// <param name="timeoutSeconds">Teto de tempo; estourado mata a arvore.</param>
+    public static ToolResult Run(string exe, string[] args, string workingDirectory, int timeoutSeconds)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo(exe)
+            {
+                WorkingDirectory = workingDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                UseShellExecute = false,
+            };
+            foreach (string a in args) psi.ArgumentList.Add(a);
+
+            using var proc = Process.Start(psi);
+            if (proc is null) return ToolResult.Fail("processo nao iniciou");
+
+            try { proc.StandardInput.Close(); } catch { }
+
+            var stdout = new StringBuilder();
+            var stderr = new StringBuilder();
+            proc.OutputDataReceived += (_, e) => { if (e.Data is not null) stdout.AppendLine(e.Data); };
+            proc.ErrorDataReceived += (_, e) => { if (e.Data is not null) stderr.AppendLine(e.Data); };
+            proc.BeginOutputReadLine();
+            proc.BeginErrorReadLine();
+
+            if (!proc.WaitForExit(Math.Max(1, timeoutSeconds) * 1000))
+            {
+                KillTree(proc.Id);
+                proc.WaitForExit(5000);
+                return ToolResult.Fail("TIMEOUT (arvore morta)");
+            }
+            // Drena os handlers assincronos: WaitForExit com timeout pode retornar
+            // antes de OutputDataReceived/ErrorDataReceived terminarem a fila.
+            proc.WaitForExit();
+
+            string output = stdout.ToString().Trim();
+            string err = stderr.ToString().Trim();
+            if (err.Length > 0) output += "\n[stderr]\n" + err;
+            // Falha honesta: exit code decide; stderr sozinho (warning) nao derruba.
+            if (proc.ExitCode != 0)
+                return ToolResult.Fail($"exit {proc.ExitCode}" + (output.Length > 0 ? $": {output}" : ""));
+            return ToolResult.Ok(output);
+        }
+        catch (Exception ex)
+        {
+            return ToolResult.Fail(ex.Message);
+        }
+    }
+
+    private static void KillTree(int pid)
+    {
+        try { Process.GetProcessById(pid).Kill(true); } catch { }
+        try { RunInternal("pkill", "-9", "-P", pid.ToString()); } catch { }
+        try { RunInternal("kill", "-9", pid.ToString()); } catch { }
+    }
+
+    private static void RunInternal(string exe, params string[] args)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo(exe)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            };
+            foreach (string a in args) psi.ArgumentList.Add(a);
+            using var proc = Process.Start(psi);
+            proc?.WaitForExit(5000);
+        }
+        catch { }
+    }
+}
