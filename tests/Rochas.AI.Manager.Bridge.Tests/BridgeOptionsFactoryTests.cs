@@ -58,11 +58,20 @@ public class BridgeOptionsFactoryTests
 public class BridgeOptionsSemanticScopeTests
 {
     [Fact]
-    public void OpencodeLigaSondaSemanticaSemAfetarOutrosClientes()
+    public void SondaSemanticaFicaDesligadaPorPadrao()
     {
         var options = new BridgeOptions();
 
         Assert.False(options.AntiRepeatSemantic);
+        Assert.False(options.ForClient("opencode/1.0").AntiRepeatSemantic);
+        Assert.False(options.ForClient("dotnet-war/1.0").AntiRepeatSemantic);
+    }
+
+    [Fact]
+    public void SondaSemanticaPodeSerLigadaNoOpencode()
+    {
+        var options = new BridgeOptions { AntiRepeatSemanticForOpencode = true };
+
         Assert.True(options.ForClient("opencode/1.0").AntiRepeatSemantic);
         Assert.False(options.ForClient("dotnet-war/1.0").AntiRepeatSemantic);
     }

@@ -32,11 +32,11 @@ public sealed class BridgeOptions
     public bool AntiRepeatSemantic { get; set; }
 
     /// <summary>
-    /// Liga a sonda semântica no cliente opencode (User-Agent), onde o loop de
-    /// conteúdo bloqueava o WAR. Outros clientes preservam a paridade do legado;
+    /// Liga a sonda semântica apenas no cliente opencode (User-Agent). Fica
+    /// desligada por padrão enquanto a sonda não passa pelo teste progressivo;
     /// <see cref="AntiRepeatSemantic"/> liga para todos.
     /// </summary>
-    public bool AntiRepeatSemanticForOpencode { get; set; } = true;
+    public bool AntiRepeatSemanticForOpencode { get; set; }
 
     /// <summary>
     /// Texto do aviso de contenção. É ENUNCIADO: vem do anexo "AntiRepeat" do

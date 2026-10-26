@@ -13,14 +13,13 @@
   de aviso/retry (`RepeatTripped`, `RepeatWhere`, `RepeatAt`,
   `RepeatContext`) continua o mesmo; `RepeatSemantic` apenas identifica a
   origem. `Reset` zera o throttle.
-- Escopo: `AntiRepeatSemanticForOpencode = true` liga a sonda via
-  `BridgeOptions.ForClient` somente quando o User-Agent e opencode;
-  `AntiRepeatSemantic` liga para todos. Outros clientes mantem a paridade com
-  o legado. Nao entra ONNX/embeddings nesta urgencia; a sonda lexical e
-  conservadora e fica isolada para medicao.
-- **Prova**: SDK .NET `10.0.403`; `dotnet test Rochas.AI.Manager.slnx -c
-  Release` = `Bridge.Tests` 109 PASS e `AI.Manager.Tests` 97 PASS + 1 SKIP;
-  0 falhas. Testes novos cobrem parafrase no detector, ativacao por cliente,
+- Escopo: a sonda fica **desligada por padrao**; `AntiRepeatSemantic =
+  true` liga para todos e `AntiRepeatSemanticForOpencode = true` liga via
+  `BridgeOptions.ForClient` somente no User-Agent opencode. Outros clientes
+  mantem a paridade com o legado. Nao entra ONNX/embeddings nesta urgencia; a
+  sonda lexical e conservadora e fica isolada para medicao no host com GPU.
+- **Prova**: SDK .NET `10.0.403`; `Bridge.Tests` 110 PASS e
+  `AI.Manager.Tests` 97 PASS + 1 SKIP; 0 falhas. Testes novos cobrem parafrase no detector, ativacao por cliente,
   content, thinking, default desligado e prosa normal sem falso-positivo.
 
 ## docs(c4): C4 e arquitetura v2.1 refletem o porte do AI.Manager.Bridge
