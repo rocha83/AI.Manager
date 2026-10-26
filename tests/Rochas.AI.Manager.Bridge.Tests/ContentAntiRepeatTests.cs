@@ -25,6 +25,23 @@ public class ContentAntiRepeatTests
     }
 
     [Fact]
+    public void DetectaRepeticaoSemanticaComPalavrasDiferentes()
+    {
+        string first =
+            "precisamos revisar a arquitetura da bridge porque o host mudou e o comportamento " +
+            "esperado nao corresponde aquilo que o manager executa hoje com fila processamento paralelo. ";
+        string paraphrase =
+            "e necessario revisar a arquitetura da bridge pois o host mudou, entao o comportamento " +
+            "esperado nao corresponde aquilo que o manager executa atualmente com fila processamento paralelo.";
+        string text = first + paraphrase;
+
+        int at = AntiRepeat.SemanticDuplicateAt(text, 128);
+
+        Assert.True(at >= 0);
+        Assert.False(new AntiRepeatReply(128).IsRepeat(text));
+    }
+
+    [Fact]
     public void NaoDetectaTextoNovo()
     {
         string text = "primeira frase completamente diferente da segunda, " +

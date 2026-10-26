@@ -25,6 +25,20 @@ public sealed class BridgeOptions
     public bool AntiRepeatRetry { get; set; } = true;
 
     /// <summary>
+    /// Sonda de repetição semântica (mesma ideia/pergunta reformulada, sem
+    /// repetir bytes). O legado só tinha janela de igualdade/similaridade; por
+    /// isso a sonda é opt-in e fica isolada por cliente.
+    /// </summary>
+    public bool AntiRepeatSemantic { get; set; }
+
+    /// <summary>
+    /// Liga a sonda semântica no cliente opencode (User-Agent), onde o loop de
+    /// conteúdo bloqueava o WAR. Outros clientes preservam a paridade do legado;
+    /// <see cref="AntiRepeatSemantic"/> liga para todos.
+    /// </summary>
+    public bool AntiRepeatSemanticForOpencode { get; set; } = true;
+
+    /// <summary>
     /// Texto do aviso de contenção. É ENUNCIADO: vem do anexo "AntiRepeat" do
     /// perfil; o default do motor só vale quando não há dado.
     /// </summary>
@@ -141,6 +155,8 @@ public sealed class BridgeOptions
         var copy = (BridgeOptions)MemberwiseClone();
         copy.OpencodeClient = !string.IsNullOrWhiteSpace(userAgent)
             && userAgent.Contains("opencode", StringComparison.OrdinalIgnoreCase);
+        copy.AntiRepeatSemantic = copy.AntiRepeatSemantic
+            || (copy.AntiRepeatSemanticForOpencode && copy.OpencodeClient);
         return copy;
     }
 }

@@ -54,3 +54,24 @@ public class BridgeOptionsFactoryTests
         Assert.Equal("tools-y", options.ToolsTail);
     }
 }
+
+public class BridgeOptionsSemanticScopeTests
+{
+    [Fact]
+    public void OpencodeLigaSondaSemanticaSemAfetarOutrosClientes()
+    {
+        var options = new BridgeOptions();
+
+        Assert.False(options.AntiRepeatSemantic);
+        Assert.True(options.ForClient("opencode/1.0").AntiRepeatSemantic);
+        Assert.False(options.ForClient("dotnet-war/1.0").AntiRepeatSemantic);
+    }
+
+    [Fact]
+    public void FlagGlobalLigaSondaParaTodos()
+    {
+        var options = new BridgeOptions { AntiRepeatSemantic = true };
+
+        Assert.True(options.ForClient("dotnet-war/1.0").AntiRepeatSemantic);
+    }
+}

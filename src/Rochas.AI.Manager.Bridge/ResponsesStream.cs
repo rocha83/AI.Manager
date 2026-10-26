@@ -36,6 +36,7 @@ public sealed class ResponsesStreamTranslator
     private int inputTokens;
     private int outputTokens;
     private int sequence;
+    private int lastSemanticProbe;
 
     public ResponsesStreamTranslator(
         BridgeOptions options,
@@ -63,6 +64,9 @@ public sealed class ResponsesStreamTranslator
     public string RepeatWhere { get; private set; } = "";
     public int RepeatAt { get; private set; } = -1;
     public string RepeatContext { get; private set; } = "";
+
+    /// <summary>true quando a repeticao foi detectada por similaridade semantica.</summary>
+    public bool RepeatSemantic { get; private set; }
 
     public string ResponseId => responseId;
     public int InputTokens => inputTokens;
@@ -229,6 +233,8 @@ public sealed class ResponsesStreamTranslator
         RepeatWhere = "";
         RepeatAt = -1;
         RepeatContext = "";
+        RepeatSemantic = false;
+        lastSemanticProbe = 0;
     }
 
     private void Emit(string type, JsonObject payload)
@@ -563,8 +569,18 @@ public sealed class ResponsesStreamTranslator
     {
         if (!options.AntiRepeat || RepeatTripped) return RepeatTripped;
         int at = AntiRepeat.DuplicateAt(accumulated, options.AntiRepeatWindow);
+        bool semantic = false;
+        if (at < 0 && options.AntiRepeatSemantic
+            && accumulated.Length >= options.AntiRepeatWindow * 2
+            && accumulated.Length - lastSemanticProbe >= 64)
+        {
+            lastSemanticProbe = accumulated.Length;
+            at = AntiRepeat.SemanticDuplicateAt(accumulated, options.AntiRepeatWindow);
+            semantic = at >= 0;
+        }
         if (at < 0) return false;
         RepeatTripped = true;
+        RepeatSemantic = semantic;
         RepeatWhere = where;
         RepeatAt = at;
         string normalized = JsonOps.Normalize(accumulated);

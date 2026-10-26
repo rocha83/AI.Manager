@@ -1,3 +1,28 @@
+## feat(anti-repeat): sonda semantica no opencode cobre content e thinking
+
+- Date: 2026-10-26
+
+- Fechada a lacuna apontada na sessao 18: o anti-repeat do Bridge era so
+  verbatim/similaridade posicional e nao via a mesma pergunta/recomendacao
+  reformulada. `AntiRepeat.SemanticDuplicateAt` compara a cauda com janelas
+  anteriores por tokens de conteudo (12 tokens, acentos normalizados,
+  stopwords pt/en), Dice >= 0.72 e pelo menos 8 tokens compartilhados, com
+  lookback de ate `6 * window` caracteres.
+- A sonda roda no `ResponsesStreamTranslator.CheckRepeat` para `content` e
+  `thinking`, com throttle de 64 caracteres e piso de `2 * window`. O caminho
+  de aviso/retry (`RepeatTripped`, `RepeatWhere`, `RepeatAt`,
+  `RepeatContext`) continua o mesmo; `RepeatSemantic` apenas identifica a
+  origem. `Reset` zera o throttle.
+- Escopo: `AntiRepeatSemanticForOpencode = true` liga a sonda via
+  `BridgeOptions.ForClient` somente quando o User-Agent e opencode;
+  `AntiRepeatSemantic` liga para todos. Outros clientes mantem a paridade com
+  o legado. Nao entra ONNX/embeddings nesta urgencia; a sonda lexical e
+  conservadora e fica isolada para medicao.
+- **Prova**: SDK .NET `10.0.403`; `dotnet test Rochas.AI.Manager.slnx -c
+  Release` = `Bridge.Tests` 109 PASS e `AI.Manager.Tests` 97 PASS + 1 SKIP;
+  0 falhas. Testes novos cobrem parafrase no detector, ativacao por cliente,
+  content, thinking, default desligado e prosa normal sem falso-positivo.
+
 ## docs(c4): C4 e arquitetura v2.1 refletem o porte do AI.Manager.Bridge
 
 - Date: 2026-10-25
