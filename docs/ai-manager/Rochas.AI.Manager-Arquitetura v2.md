@@ -1,15 +1,17 @@
-# Rochas.AI.Manager — Arquitetura v2.0
+# Rochas.AI.Manager — Arquitetura v2.1
 
-**Data:** 2026-10-20
-**Status:** vigente (substitui a organização do v1 como referência de arquitetura; o v1.2 permanece como histórico de intenção e traz o as-built na seção 32).
-**Escopo:** arquitetura da plataforma `OpenCodeBridge/AI.Manager` — domínio, aplicação, persistência, harness, bridge/proxy, workflow de aprovação, treinamento, relatórios, segurança, testes e roadmap.
+**Data:** 2026-10-20 (rev. 2.1 em 2026-10-25)
+**Status:** vigente — a rev. 2.1 registra o porte do `AI.Manager.Bridge` (núcleo, contratos, client, hosting, Api e Runner), o harness base+tails e o discriminador por cliente. Substitui a organização do v1; o v1.2 permanece como histórico de intenção e as-built na seção 32.
+**Escopo:** arquitetura da plataforma `OpenCodeBridge/AI.Manager` — domínio, aplicação, persistência, harness, `AI.Manager.Bridge`/proxy, workflow de aprovação, treinamento, relatórios, segurança, testes e roadmap.
 **Documentos relacionados:** `Rochas.AI.Manager-Arquitetura v1.md` (§32 as-built), `REPORT-PENDINGS.md` (catálogo de relatórios), `AI.Manager/docs/ai-manager/ARQUITETURA-CAMADAS.md`, `GUIA-INICIANTE.md`, `GUIA-TUNING-EQUIPE-TECNICA.md`.
 
 ---
 
 ## 1. Sumário executivo
 
-O Rochas.AI.Manager saiu do papel e hoje é uma aplicação .NET 10 com seis projetos de produção e uma suíte xUnit, cobrindo: catálogo de modelos e datasets, perfis de instrução e padrões, experimentos, jobs de treino com métricas, harness versionado (perfis, versões, anexos, políticas de tool, bindings, runs, capturas), workflow de aprovação com trilha de transições, API REST com Swagger, proxy OpenAI-compatible com saneamento de reasoning e coerção de tool calls, UI MVC com 18 controllers e 22 views, e exportação de relatórios em CSV/XLSX/PDF/HTML.
+O Rochas.AI.Manager saiu do papel e hoje é uma aplicação .NET 10 com treze projetos de produção (sete do núcleo, incluindo o SDK guarda-chuva `Core`, e seis do `AI.Manager.Bridge`) e duas suítes xUnit, cobrindo: catálogo de modelos e datasets, perfis de instrução e padrões, experimentos, jobs de treino com métricas, harness versionado (perfis, versões, anexos, políticas de tool, bindings, runs, capturas), workflow de aprovação com trilha de transições, API REST com Swagger, proxy OpenAI-compatible com saneamento de reasoning e coerção de tool calls, UI MVC com 18 controllers e 22 views, e exportação de relatórios em CSV/XLSX/PDF/HTML.
+
+O porte de 2026-10-25 extraiu do OpenCodeBridge o núcleo protocol-only (`Responses↔chat`, harness, anti-repeat, breaker), os contratos, o client HTTP/SSE, o hosting de flags/DI e dois hosts (`Bridge.Api` REST+Swagger e `Bridge.Runner` CLI). O proxy legado do AI.Manager continua no ar até o cutover; o OpenCodeBridge fica como doador congelado.
 
 A v2 consolida o que existe e corrige três distorções entre intenção e código:
 
@@ -25,12 +27,12 @@ A regra editorial permanece a do v1 (§28.1/§28.14): capacidade só é "conclu�
 
 | Tema | v1 (intenção) | v2 (baseline + alvo) |
 |---|---|---|
-| Estrutura | 7 projetos incluindo `TrainingWorker` | 6 projetos reais + testes; worker vira hosted service e depois projeto dedicado (ADR-10) |
+| Estrutura | 7 projetos incluindo `TrainingWorker` | 13 projetos reais (7 núcleo + 6 Bridge) + 2 suítes; worker vira hosted service e depois projeto dedicado (ADR-10) |
 | UoW/Repositórios | `IRepository`/`IUnitOfWork` no Domain | Contratos do pacote `Rochas.DapperRepository` como baseline; contratos próprios removidos ou implementados (ADR-11) |
 | Treinamento | TorchSharp multi-modelo desde o início | MLP é baseline rotulado; TorchSharp só após prova (ADR-06); Python vira adaptador externo opcional (ADR-07) |
-| Harness | Seção 31 como requisito | Harness já modelado e semeado; falta Test Bench e vínculo de evidência (ADR-03) |
+| Harness | Seção 31 como requisito | Modelado e semeado; `MainHarness` base + `HarnessTails` no Bridge, gate por cliente; falta Test Bench e vínculo de evidência (ADR-03/ADR-14) |
 | Relatórios | "Estatísticas no admin" | Subsistema próprio com catálogo R1–R30, facetas e De/Até (ADR-04, ADR-05) |
-| Bridge | Preservar contrato | Proxy `/v1/chat/completions` implementado; `/v1/responses` e flags pendentes |
+| Bridge | Preservar contrato | `AI.Manager.Bridge` extraído: `/v1/responses`, `/v1/chat/completions`, hosts Api/Runner, harness/tails, anti-repeat/breaker; integração in-process no AI.Manager ainda pendente (ADR-13) |
 | Chat | Reaproveitar chat web | View portada sem backend; decisão de portar endpoints (ADR-08) |
 | Segurança | Autenticação/autorização genéricas | Chave JWT, seed e proxy precisam de hardening imediato (§15) |
 | Documentação | Guideline extenso | Documento único de arquitetura + as-built no v1 + pendências separadas |
@@ -58,6 +60,8 @@ A regra editorial permanece a do v1 (§28.1/§28.14): capacidade só é "conclu�
 **Premissas**
 
 - Uma máquina de desenvolvimento com duas bridges locais (`:4124` GPU, `:4125` CPU) e servidores llama em `:4100`/`:4110`.
+- `:4124` (Q4) é o **gate**; `:4125` (Q3) é **espelho pós-green**, nunca critério de aceite.
+- O `Rochas.OpenCodeBridge` é **doador transitório**: recebe features até o cutover e depois é arquivado.
 - SQLite é suficiente para o volume atual (centenas a milhares de registros por tabela).
 - O usuário final é técnico; "modo básico" continua sendo o caminho recomendado.
 
@@ -90,11 +94,19 @@ AI.Manager/
     Rochas.AI.Manager.Application/       # serviços, tools handlers, helpers de resposta
     Rochas.AI.Manager.Infrastructure/    # AppDb, ReportService, PasswordHasher
     Rochas.AI.Manager.TrainingEngine/    # backend numérico + runner de processo + engine
-    Rochas.AI.Manager.Api/               # REST, Swagger, proxy /v1, tools
+    Rochas.AI.Manager.Core/              # SDK guarda-chuva (Domain+Application+Infrastructure+TrainingEngine)
+    Rochas.AI.Manager.Api/               # REST, Swagger, proxy /v1 legado, tools
     Rochas.AI.Manager.Web/               # MVC, views, seeders, /health
+    Rochas.AI.Manager.Bridge/            # núcleo protocol-only: Responses↔chat, harness, anti-repeat, breaker
+    Rochas.AI.Manager.Bridge.Contracts/  # DTOs/manifesto/opções (sem ASP.NET)
+    Rochas.AI.Manager.Bridge.Client/     # HTTP/SSE tipado
+    Rochas.AI.Manager.Bridge.Hosting/    # flags/env, DI, bootstrap, BridgeComponent
+    Rochas.AI.Manager.Bridge.Api/        # host REST+Swagger (/v1, /api/status, /api/contract)
+    Rochas.AI.Manager.Bridge.Runner/     # host CLI serve/manifest (HttpListener)
   tests/
-    Rochas.AI.Manager.Tests/             # 12 arquivos, 61 casos
-  docs/ai-manager/                       # arquitetura de camadas + guias
+    Rochas.AI.Manager.Tests/             # 97 PASS + 1 SKIP
+    Rochas.AI.Manager.Bridge.Tests/      # 102 PASS
+  docs/ai-manager/                       # arquitetura de camadas + guias + C4 editável/PNG
 ```
 
 **Alvo incremental (não criar antes de precisar):**
@@ -111,12 +123,16 @@ src/Rochas.AI.Manager.Inference/         # clientes Ollama/llama-server (Fase 5)
 
 **Regra de ouro:** `Domain` não conhece nada; `Application` conhece `Domain`; `Infrastructure` conhece os dois; `Web`/`Api` conhecem `Application`, `Infrastructure` e `TrainingEngine`; `TrainingEngine` conhece `Application` (para relatar progresso), nunca `Web`/`Api`.
 
+**Regra do Bridge:** `Rochas.AI.Manager.Bridge` é o núcleo protocol-only e referencia apenas `Bridge.Contracts`; não referencia ASP.NET, CLI, Swagger, `Domain` ou `Application`. `Bridge.Client` referencia `Contracts`; `Bridge.Hosting` referencia `Contracts`; `Bridge.Api`/`Runner` referenciam `Bridge`, `Contracts` e `Hosting`. O sentido proibido é `Bridge` → `Api`/`Runner`/`Client`/`Web`.
+
 | Camada | Contém | Proibido |
 |---|---|---|
 | Domain | Entidades, base classes, enums, `ReportQuery/Result`, `EntityHashCode` | Dapper, SQLite, ASP.NET, TorchSharp |
 | Application | Serviços (regras), tools handlers, `ReasoningSanitizer`, `ToolCallCoercer` | SQL direto, acesso a `HttpContext`, `Process` fora de `ProcessRunner` |
 | Infrastructure | `AppDb` (schema), `ReportService`, hasher | Regra de negócio, decisão de fluxo |
 | TrainingEngine | `TrainingEngine`, backend, `TrainingRunner` | Controllers, views, banco |
+| Bridge (core) | `ResponsesToChat`, `ChatToResponses`, `BridgeProxy`, `MainHarness`, `HarnessTails`, anti-repeat, breaker, `QwenStandard`, `ContextGuard` | ASP.NET, CLI, Swagger, `Domain`/`Application`, I/O de banco |
+| Bridge hosts | `Api` (REST+Swagger), `Runner` (serve/manifest), `Hosting` (flags/DI), `Client`, `Contracts` | Regra de negócio do AI.Manager |
 | Web / Api | Controllers finos, views, DI, seed, `/health` | Regra de negócio duplicada, SQL direto |
 
 **Violações atuais (corrigir na Fase 0/1):**
@@ -239,11 +255,21 @@ Modos: `ClientNative` (default; cliente traz o harness), `BridgeBypass`, `Bridge
 - Geração de `agents/*.md` e `opencode.json` a partir do perfil.
 - `HarnessRun` com perfil/versão/captura reais (hoje o proxy grava `0`).
 
+### 9.5 MainHarness e tails no Bridge (porte 2026-10-25)
+
+O `Rochas.AI.Manager.Bridge` separa **base** e **cauda**:
+
+- `MainHarness.Apply(messages, enabled)` substitui o system do cliente pela base enxuta e preserva `<env>`, `<available_skills>`, `Today's date:` e instruções pequenas em `INSTRUCOES DO CLIENTE`. Não substitui o master do opencode (`# Code Mode`, `Instructions from:`, `You are opencode`, system > 6000 chars).
+- O gate é o **cliente**, nunca o sufixo do modelo: o host clona `BridgeOptions` com `ForClient(User-Agent)`; a base só aplica quando `MainHarness && !OpencodeClient`. O WAR (`<modelo>-build`) recebe a base; o CLI do opencode preserva o Code Mode.
+- Base e tails **coexistem**. `HarnessTails.DefaultBehavior` é o delta do canal (formato, tools primeiro, persistência, prioridade); escrita sem loop, caminhos e "2 tentativas" moram na base.
+- `BridgeOptions.TailScope` = `managed` (default; todos menos o CLI do opencode), `all` (também no opencode) ou `off` (nenhuma).
+- Flags: `--main-harness` (default no host), `--no-main-harness`, `--tail-scope managed|all|off`; ambiente `BRIDGE_MAIN_HARNESS`, `BRIDGE_TAIL_SCOPE`.
+
 ---
 
 ## 10. Bridge e proxy (contrato real)
 
-### 10.1 O que existe
+### 10.1 Caminho legado do AI.Manager (transitório)
 
 `Api/Controllers/ProxyController.cs`, rota `POST /v1/chat/completions`:
 
@@ -257,7 +283,33 @@ Modos: `ClientNative` (default; cliente traz o harness), `BridgeBypass`, `Bridge
 
 `POST /api/tools/execute` (`[Authorize]`) despacha 9 handlers leaf no workspace (`BridgeToolExecutor`): shell, read, write, edit, grep, glob, fetch, git, subagent — com `WorkspaceGuard`, `ShellInspector` e `ProcessRunner` (timeout 300s default).
 
-### 10.2 Invariantes da v2
+### 10.2 AI.Manager.Bridge (porte 2026-10-25)
+
+Projetos `net10.0` e dependências reais:
+
+| Projeto | Papel | Referencia |
+|---|---|---|
+| `Rochas.AI.Manager.Bridge` | núcleo protocol-only: `ResponsesToChat`, `ChatToResponses`, `BridgeProxy`, `MainHarness`, `HarnessTails`, `ContentAntiRepeat`, `ToolsAntiRepeat`, `ToolArgsParser`, `ToolCoercion`, `ToolSanitizer`, `TextGrammar`, `ResponseBody`, `ToolLoopContext`, `QwenStandard`, `Sampling`, `ContextGuard` | `Bridge.Contracts` |
+| `Rochas.AI.Manager.Bridge.Contracts` | DTOs de opções/manifesto e schema; sem ASP.NET | — |
+| `Rochas.AI.Manager.Bridge.Client` | HTTP/SSE tipado para `/v1/responses` e `/v1/chat/completions` | `Contracts` |
+| `Rochas.AI.Manager.Bridge.Hosting` | `BridgeHostOptions` (flags/env), `BridgeComponent`, bootstrap | `Contracts` |
+| `Rochas.AI.Manager.Bridge.Api` | host REST+Swagger | `Bridge`, `Contracts`, `Hosting` |
+| `Rochas.AI.Manager.Bridge.Runner` | host CLI `serve`/`manifest` (HttpListener) | `Bridge`, `Contracts`, `Hosting` |
+
+**Endpoints (Api e Runner):** `GET /api/status`, `GET /health`, `GET /api/contract`, `GET /api/contract/schema`, `POST /api/manifest/validate`, `POST /api/manifest/dry-run`, `POST /v1/responses`, `POST /v1/chat/completions`.
+
+**Pipeline:** `ResponsesToChat.Convert` → estratégia de tools → anti-repeat (conteúdo/args, Levenshtein + assinatura canônica) → breaker soft/hard → upstream OpenAI-compatible → `ChatToResponses`; stream SSE no mesmo contrato. `BridgeOptions.ForClient(User-Agent)` isola a decisão por requisição (o host é singleton e não muta a instância compartilhada).
+
+**Harness:** `MainHarness` (base) + `HarnessTails` (delta), com `TailScope` e discriminador por cliente (§9.5). O core é testável sem ASP.NET; `Bridge.Api` e `Runner` são cascas.
+
+### 10.3 Integração e cutover
+
+- Hoje o AI.Manager ainda usa o `ProxyController` legado; `Bridge.Api`/`Runner` são hosts standalone e `Bridge.Client` já fala o contrato novo.
+- Próximo corte: consumir `Bridge.Client` no `AI.Manager.Api` (in-process ou HTTP) e desligar o proxy legado por flag.
+- O `OpenCodeBridge` permanece doador congelado; features novas entram no `AI.Manager.Bridge`. O arquivamento exige paridade + 3 gates Q4 verdes.
+- **Q4 `:4124` é o gate**; **Q3 `:4125` é espelho pós-green** e nunca substitui o gate.
+
+### 10.4 Invariantes da v2
 
 - A bridge é **protocol-only**: não interpreta dataset, experimento, treino ou perfil.
 - Token de entrada validado (JWT ou API key registrada); credencial do upstream vinda de configuração.
@@ -265,7 +317,8 @@ Modos: `ClientNative` (default; cliente traz o harness), `BridgeBypass`, `Bridge
 - `max_tokens` do cliente respeitado no repasse; ausência → valor do binding.
 - `HarnessRun` sempre com `profile_version_id`, `model_binding_id`, `request_hash`; `evidence_id` quando a sonda estiver ligada.
 - Toda resposta não-stream com `tool_calls` coercíveis é registrada; toda falha de upstream gera run com `result_code` real.
-- `/v1/responses` entra como contrato de compatibilidade com testes de contrato (v1 §28.4).
+- `/v1/responses` e `/v1/chat/completions` têm testes de contrato no `Bridge.Tests` e no host.
+- O core não referencia ASP.NET/CLI/Swagger; hosts são substituíveis.
 
 ---
 
@@ -399,10 +452,12 @@ As 30 definições propostas (R1–R30), com facetas por FK, eixos temporais e m
 |---|---|---|
 | Unitário | AccuracyEvaluator, EntityHashCode, helpers, linter, workflow | Cobrir invariantes de agregado e máquinas de estado |
 | Integração | SQLite em `SequentialCollection` | Repositórios, transações, seed idempotente |
-| Contrato | — | Proxy `/v1/chat/completions` e `/v1/responses` (golden files) |
+| Contrato | `Bridge.Tests`: 102 PASS (protocolo, harness, anti-repeat, breaker, manifesto) | Golden files de `/v1/responses` e `/v1/chat/completions` no host |
 | Web/API | — | `WebApplicationFactory` para rotas e exportação |
 | Relatórios | 4 casos | Golden CSV/XLSX por definição; De/Até inclusivo/exclusivo |
 | Regressão de harness | — | Preview byte-idêntico ao request (hash) |
+
+**Estado em 2026-10-25:** `dotnet build Rochas.AI.Manager.slnx -c Release` = 0 erros / 106 warnings; `Bridge.Tests` = 102 PASS; `AI.Manager.Tests` = 97 PASS + 1 SKIP.
 
 Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende de GPU é marcado e roda em job separado.
 
@@ -422,6 +477,8 @@ Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende d
 - **ADR-10 — Worker:** `BackgroundService` no host na Fase 2; projeto dedicado só com múltiplos hosts.
 - **ADR-11 — Contratos de domínio:** `IRepository`/`IUnitOfWork` implementados ou removidos (sem código morto).
 - **ADR-12 — Schema:** scripts versionados + `schema_version`; proibido `ALTER TABLE` em `try/catch`.
+- **ADR-13 — Bridge extraível:** núcleo `Rochas.AI.Manager.Bridge` sem ASP.NET/CLI/Swagger; `Api`/`Runner` são hosts; `Contracts`/`Client`/`Hosting` completam o pacote. OpenCodeBridge é doador transitório; Q4 é gate e Q3 é espelho.
+- **ADR-14 — Harness no Bridge:** `MainHarness` base + `HarnessTails` coexistentes; gate por cliente (`User-Agent`), nunca por sufixo de modelo; `TailScope` managed/all/off; `ForClient` isola a decisão por requisição.
 
 ---
 
@@ -436,6 +493,8 @@ Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende d
 | Perda de evidência de experimento | Média | Alto | Run sem perfil/captura | §9.4 |
 | Crescimento do banco sem índice | Média | Médio | Consultas lentas em `harness_runs` | §8.2 |
 | Divergência harness nativo × custom | Média | Médio | Resultado muda sem mudança de versão | Diff + Test Bench |
+| Duplicação proxy legado × Bridge | Alta | Médio | Dois caminhos com comportamento diferente | Cutover por flag + testes de contrato; remover o legado |
+| Deriva OCB → AI.Manager.Bridge | Média | Alto | Correção só no doador | Sync com diff + gate Q4; ADR-13 |
 
 ---
 
@@ -457,6 +516,10 @@ Fila em `training_jobs`, claim atômico, hosted service, cancelamento cooperativ
 `HarnessRun` com perfil/versão/captura; Test Bench; diff de versões; matriz de capacidade.
 *Aceite:* todo run rastreia perfil→versão→request→resultado; preview byte-idêntico.
 
+**Fase 3.5 — Bridge e cutover (em andamento)**
+`AI.Manager.Bridge` extraído (Core/Contracts/Client/Hosting/Api/Runner), `/v1/responses`, harness base+tails e anti-repeat/breaker. Falta consumir `Bridge.Client` no AI.Manager, desligar o proxy legado e congelar o doador.
+*Aceite:* request do AI.Manager atravessa `Bridge.Client`→`Bridge.Api` com contrato e evidência; Q4 verde.
+
 **Fase 4 — Motor numérico (2–4 sprints)**
 G2 (TorchSharp na GPU), loader Safetensors, forward textual de um modelo, LoRA, resume.
 *Aceite:* loss cai em dataset sintético na GPU com gradientes finitos; adaptador salvo/restaurado.
@@ -466,7 +529,7 @@ Dashboard operacional, estatísticas agregadas, `/health/ready`, índices, scrip
 *Aceite:* painel mostra jobs/runs/erros com origem e timestamp; migração idempotente.
 
 **Fase 6 — Horizonte**
-`/v1/responses` com testes de contrato, clientes de inferência (Ollama/llama-server), multimídia/áudio, app mobile, PostgreSQL.
+Integração do `Bridge.Client` no AI.Manager (in-process/HTTP), cutover e remoção do proxy legado, clientes de inferência (Ollama/llama-server), multimídia/áudio, app mobile, PostgreSQL.
 
 ---
 
@@ -482,6 +545,8 @@ Dashboard operacional, estatísticas agregadas, `/health/ready`, índices, scrip
 8. Schema evolui por script versionado, com `schema_version`.
 9. Integridade referencial verificável por relatório (R29) a qualquer momento.
 10. Build e suíte verdes no CI antes de qualquer release.
+11. `AI.Manager.Bridge` core não referencia ASP.NET/CLI/Swagger; `Api`/`Runner` são hosts substituíveis.
+12. Harness no Bridge é decidido pelo cliente (`User-Agent`), com base+tails e `TailScope`; Q4 é gate e Q3 é espelho.
 
 ---
 
@@ -495,7 +560,9 @@ Dashboard operacional, estatísticas agregadas, `/health/ready`, índices, scrip
 | Repositórios/DI | `src/*/Program.cs` |
 | Contratos de relatório | `src/Rochas.AI.Manager.Domain/Interfaces/IReportService.cs` |
 | Execução de relatório | `src/Rochas.AI.Manager.Infrastructure/Services/ReportService.cs` |
-| Proxy/bridge | `src/Rochas.AI.Manager.Api/Controllers/ProxyController.cs` |
+| Proxy legado | `src/Rochas.AI.Manager.Api/Controllers/ProxyController.cs` |
+| Bridge novo | `src/Rochas.AI.Manager.Bridge/*` + `Bridge.Api`/`Bridge.Runner` |
+| Harness no Bridge | `src/Rochas.AI.Manager.Bridge/{MainHarness,HarnessTails}.cs` |
 | Tools | `src/Rochas.AI.Manager.Application/Tools/*` |
 | Helpers de resposta | `src/Rochas.AI.Manager.Application/Helpers/{ReasoningSanitizer,ToolCallCoercer}.cs` |
 | Harness | `src/Rochas.AI.Manager.Domain/Harness/*` + `Application/Services/Harness*` |
@@ -514,6 +581,10 @@ Dashboard operacional, estatísticas agregadas, `/health/ready`, índices, scrip
 - **Transição:** registro imutável de mudança de estado de entidade workflow-based.
 - **Faceta:** dimensão de agrupamento/filtro derivada de coluna ou FK.
 - **Eixo temporal:** coluna de data usada no recorte De/Até de um relatório.
+- **MainHarness:** base enxuta que substitui o system do cliente no caminho gerido.
+- **TailScope:** escopo das caudas (`managed`/`all`/`off`).
+- **Gate Q4 / espelho Q3:** instância estável de aceite (`:4124`) e espelho pós-green (`:4125`).
+- **Doador:** `OpenCodeBridge` congelado, consumido via `Bridge.Client` até o cutover.
 
 ### 21.3 Change log
 
@@ -522,3 +593,4 @@ Dashboard operacional, estatísticas agregadas, `/health/ready`, índices, scrip
 | v1.2 | 2026-10-19 | Guideline original + seção 31 (harness) |
 | v1.3 | 2026-10-20 | Seção 32 (as-built) e nota de revisão |
 | v2.0 | 2026-10-20 | Consolidação do as-built, subsistema de relatórios, ADRs, roadmap e critérios de aceitação |
+| v2.1 | 2026-10-25 | Porte do `AI.Manager.Bridge` (Core/Contracts/Client/Hosting/Api/Runner), harness base+tails, `TailScope`, discriminador por cliente; C4 regenerado |

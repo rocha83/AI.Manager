@@ -1,3 +1,22 @@
+## docs(c4): C4 e arquitetura v2.1 refletem o porte do AI.Manager.Bridge
+
+- Date: 2026-10-25
+
+- C4 (Nível 2, contêineres) regenerado a partir de `gen-c4.py`: o boundary
+  `AI.Manager.Bridge` agora mostra os seis projetos reais (`Core`, `Contracts`,
+  `Client`, `Hosting`, `Api`, `Runner`), o pipeline protocol-only, `MainHarness`
+  base + `HarnessTails`, `TailScope` e o discriminador por cliente (User-Agent).
+  `TestBench` e `Seed do WAR` ficam marcados como fase 2; Q4 segue gate e Q3
+  espelho pós-green. Saídas: `.drawio` editável e PNG 4002x2402 (escala 2.5).
+- `Rochas.AI.Manager-Arquitetura v2.md` sobe para v2.1: sumário, estrutura de
+  projetos, regra de dependência do Bridge, seção 9.5 (harness base+tails),
+  seção 10 reescrita (legado transitório, Bridge, cutover e invariantes),
+  testes, ADR-13/ADR-14, riscos, roadmap (Fase 3.5), critérios, mapa, glossário
+  e change log. `ARQUITETURA-CAMADAS.md` ganhou a camada Bridge e hosts.
+- **Prova**: `python3 docs/ai-manager/diagrams/gen-c4.py` + `drawio -x -f png
+  --size page -s 2.5`; XML válido; build/testes verdes no commit `c72f726`
+  (`Bridge.Tests` 102 PASS; `AI.Manager.Tests` 97 PASS + 1 SKIP).
+
 ## sync(harness): base enxuta do OCB, tails coexistentes e discriminador por cliente
 
 - Date: 2026-10-25

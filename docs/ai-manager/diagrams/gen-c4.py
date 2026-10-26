@@ -5,7 +5,8 @@ Arquitetura representada (v2, absorcao):
   - AI.Manager e o sistema concentrador (Web/API, workflow existente,
     TestBench, SQLite/evidencia);
   - AI.Manager.Bridge e um projeto DENTRO do AI.Manager
-    (Host, Protocol, Flow/TestCircuitDriver, Contracts/Client);
+    (Core/Contracts/Client/Hosting/Api/Runner);
+  - TestBench/Flow, Seed do WAR e a integracao in-process sao fase 2;
   - Rochas.OpenCodeBridge aparece como DOADOR/TRANSITORIO, fora do sistema;
   - Q4 :4124 e o gate; Q3 :4125 e espelho pos-green; llama.cpp fica externo.
 
@@ -110,16 +111,16 @@ def edge(src: str, dst: str, label: str = "", stroke: str = "#788496",
 
 def build() -> str:
     # ---- cabecalho ----------------------------------------------------------
-    cell("title", "AI.Manager — C4 Nível 2 (Contêineres): absorção do OpenCodeBridge como AI.Manager.Bridge",
+    cell("title", "AI.Manager — C4 Nível 2 (Contêineres): porte do OpenCodeBridge como AI.Manager.Bridge",
          30, 6, 1180, 34, style=TITLE, fill="none", stroke="none")
     cell("subtitle",
          "AI.Manager é o concentrador da solução de treinamento e testes de modelos locais de baixa instrução  •  "
-         "AI.Manager.Bridge é projeto interno (extraível)  •  Q4 :4124 = gate  •  Q3 :4125 = espelho pós-green",
-         30, 42, 1180, 22, style=SUB, fill="none", stroke="none")
+         "porte 2026-10-25: Core/Contracts/Client/Hosting/Api/Runner  •  Q4 :4124 = gate  •  Q3 :4125 = espelho pós-green",
+         30, 42, 1200, 22, style=SUB, fill="none", stroke="none")
 
     cell("legend",
          "<b>Legenda</b><br><font style='font-size:9px'>"
-         "—— chamada síncrona&nbsp;&nbsp;&nbsp;-- evidência / migração<br>"
+         "—— chamada síncrona&nbsp;&nbsp;&nbsp;-- evidência / fase 2 / migração<br>"
          "■ AI.Manager&nbsp;&nbsp; ■ AI.Manager.Bridge&nbsp;&nbsp; ■ doador&nbsp;&nbsp; "
          "■ modelo&nbsp;&nbsp; ■ storage</font>",
          1240, 10, 330, 62, style=BOX_LEFT, fill="#FFFFFF", stroke="#D2D8E2")
@@ -128,82 +129,88 @@ def build() -> str:
     cell("boundary_ai",
          "<b>AI.Manager</b><br><font style='font-size:9px;color:#4E5A6C'>"
          "sistema concentrador — experimento, workflow, circuito, enunciado, evidência</font>",
-         110, 100, 760, 700, fill=C_AI, stroke=S_AI, dashed="1", boundary=True)
+         90, 96, 790, 720, fill=C_AI, stroke=S_AI, dashed="1", boundary=True)
 
-    cell("web", "<b>Web UI</b><br><font style='font-size:9px'>catálogo • wizard • mapa do circuito • console • evidência</font>",
-         148, 152, 320, 78, fill="#FFFFFF")
-    cell("api", "<b>API + Application Services</b><br><font style='font-size:9px'>CRUD • ManifestBuilder • Validator • Acceptance • Runner Registry</font>",
-         500, 152, 330, 78, fill="#FFFFFF")
-    cell("workflow", "<b>Workflow existente</b><br><font style='font-size:9px'>Experiment (Kind=Training|Test) • TrainingWorkflowCard • aprovação/status</font>",
-         148, 262, 320, 92, fill="#FFFFFF")
-    cell("testbench", "<b>TestBench / Domain</b><br><font style='font-size:9px'>ExperimentPlan • CircuitStage/Step • TestScenario • TestRun • MirrorRun • Evidence</font>",
-         500, 262, 330, 92, fill="#FFFFFF")
+    cell("web", "<b>Web UI</b><br><font style='font-size:9px'>catálogo • wizard • mapa do circuito<br>console • evidência</font>",
+         120, 146, 330, 72, fill="#FFFFFF")
+    cell("api", "<b>API + Application Services</b><br><font style='font-size:9px'>CRUD • ManifestBuilder • Validator<br>Acceptance • Runner Registry</font>",
+         490, 146, 350, 72, fill="#FFFFFF")
+    cell("workflow", "<b>Workflow existente</b><br><font style='font-size:9px'>Experiment (Kind=Training|Test) • TrainingWorkflowCard<br>aprovação/status</font>",
+         120, 246, 330, 82, fill="#FFFFFF")
+    cell("testbench", "<b>TestBench / Domain</b> <font color='#B06A2C'>(fase 2)</font><br><font style='font-size:9px'>ExperimentPlan • CircuitStage/Step • TestScenario<br>TestRun • MirrorRun • Evidence</font>",
+         490, 246, 350, 82, fill="#FFFFFF")
 
     # ---- AI.Manager.Bridge (projeto interno) --------------------------------
     cell("boundary_bridge",
          "<b>AI.Manager.Bridge</b> — projeto interno (extraível após paridade)<br>"
-         "<font style='font-size:9px;color:#4E5A6C'>transporte e controle de fluxo entre cliente e engine</font>",
-         140, 384, 700, 246, fill=C_BRIDGE, stroke=S_BRIDGE, dashed="0", boundary=True)
+         "<font style='font-size:9px;color:#4E5A6C'>núcleo protocol-only • hosts Api/Runner • contratos/client/hosting</font>",
+         110, 356, 750, 322, fill=C_BRIDGE, stroke=S_BRIDGE, dashed="0", boundary=True)
 
-    cell("br_host", "<b>Host</b><br><font style='font-size:9px'>Responses • chat • SSE • /api/status • /api/metrics</font>",
-         160, 438, 210, 68, fill="#FFFFFF", stroke=S_BRIDGE)
-    cell("br_protocol", "<b>Protocol</b><br><font style='font-size:9px'>tradução • tools • harness/tails • breaker • permissões</font>",
-         386, 438, 220, 68, fill="#FFFFFF", stroke=S_BRIDGE)
-    cell("br_flow", "<b>Flow</b><br><font style='font-size:9px'>TestCircuitDriver • DAG • ManifestCircuitTemplate • gate • artefatos</font>",
-         622, 438, 200, 68, fill="#FFFFFF", stroke=S_BRIDGE)
-    cell("br_contracts", "<b>Contracts</b><br><font style='font-size:9px'>manifesto • resultado • checksum</font>",
-         160, 522, 210, 62, fill="#FFFFFF", stroke=S_BRIDGE)
-    cell("br_client", "<b>Client</b><br><font style='font-size:9px'>HTTP/SSE tipado (AI.Manager + host legado)</font>",
-         386, 522, 220, 62, fill="#FFFFFF", stroke=S_BRIDGE)
-    cell("br_telemetry", "<b>Telemetria / evidência</b><br><font style='font-size:9px'>events.jsonl • summary.tsv • hashes</font>",
-         622, 522, 200, 62, fill="#FFFFFF", stroke=S_BRIDGE)
+    cell("br_contracts", "<b>Contracts</b><br><font style='font-size:9px'>DTOs • manifest • opções (sem ASP.NET)</font>",
+         125, 404, 140, 70, fill="#FFFFFF", stroke=S_BRIDGE)
+    cell("br_client", "<b>Client</b><br><font style='font-size:9px'>HTTP/SSE tipado • host legado</font>",
+         275, 404, 140, 70, fill="#FFFFFF", stroke=S_BRIDGE)
+    cell("br_hosting", "<b>Hosting</b><br><font style='font-size:9px'>flags • DI • bootstrap</font>",
+         425, 404, 140, 70, fill="#FFFFFF", stroke=S_BRIDGE)
+    cell("br_runner", "<b>Runner</b><br><font style='font-size:9px'>serve • manifest</font>",
+         575, 404, 140, 70, fill="#FFFFFF", stroke=S_BRIDGE)
+    cell("br_api", "<b>Api</b><br><font style='font-size:9px'>REST + Swagger • /v1</font>",
+         725, 404, 125, 70, fill="#FFFFFF", stroke=S_BRIDGE)
+
+    cell("br_core", "<b>Core (Rochas.AI.Manager.Bridge)</b><br><font style='font-size:9px'>Responses↔chat • tools • MainHarness base + HarnessTails<br>anti-repeat • breaker • QwenStandard • ContextGuard</font>",
+         250, 510, 460, 76, fill="#FFFFFF", stroke=S_BRIDGE)
+
+    cell("br_note",
+         "<b>Harness (core):</b> <font style='font-size:9px'>"
+         "MainHarness.Apply(messages, enabled) • gate por cliente (User-Agent contém \"opencode\"; nunca sufixo -build) • "
+         "base e tails coexistem • TailScope managed|all|off • ForClient isola a decisão por requisição</font>",
+         125, 606, 725, 48, style=BOX_LEFT, fill="#F8FAFF", stroke=S_BRIDGE)
 
     cell("store", "<b>SQLite</b><br><font style='font-size:9px'>definições • versões • runs • metadados de evidência • auditoria</font>",
-         148, 652, 320, 78, fill=C_STORE, stroke=S_STORE)
-    cell("seed", "<b>Seed do WAR</b><br><font style='font-size:9px'>war-baseline.json (importação, nunca runtime) • WarBaselineSeeder idempotente</font>",
-         500, 652, 330, 78, fill=C_STORE, stroke=S_STORE)
+         120, 700, 330, 72, fill=C_STORE, stroke=S_STORE)
+    cell("seed", "<b>Seed do WAR</b> <font color='#B06A2C'>(fase 2)</font><br><font style='font-size:9px'>war-baseline.json (importação, nunca runtime) • WarBaselineSeeder idempotente</font>",
+         490, 700, 350, 72, fill=C_STORE, stroke=S_STORE)
 
     # ---- doador -------------------------------------------------------------
     cell("boundary_donor",
          "<b>Rochas.OpenCodeBridge</b> — doador / transitório (Git separado até o cutover)<br>"
          "<font style='font-size:9px;color:#4E5A6C'>congelado para features; consome AI.Manager.Bridge durante a transição; arquivado após paridade + 3 gates Q4 verdes</font>",
-         110, 818, 760, 118, fill=C_DONOR, stroke=S_DONOR, dashed="1", boundary=True)
+         90, 826, 790, 108, fill=C_DONOR, stroke=S_DONOR, dashed="1", boundary=True)
     cell("donor", "<b>Host legado + Test + WAR</b><br><font style='font-size:9px'>Program.cs (~245 KB) • TestCircuitDriver • WarTemplate • E2E belts • Web</font>",
-         148, 866, 682, 56, fill="#FFFFFF", stroke=S_DONOR)
+         120, 870, 730, 50, fill="#FFFFFF", stroke=S_DONOR)
 
     # ---- fora do AI.Manager -------------------------------------------------
     cell("user", "<b>Autor / operador</b><br><font style='font-size:9px'>pessoa — guia o circuito e aprova o experimento</font>",
-         990, 140, 580, 66, fill=C_EXT, stroke=S_EXT)
+         960, 146, 600, 64, fill=C_EXT, stroke=S_EXT)
     cell("bridge_q4", "<b>Bridge Q4 :4124</b> — GATE<br><font style='font-size:9px'>instância estável; único critério de aceite</font>",
-         990, 246, 580, 66, fill=C_GATE, stroke=S_GATE)
+         960, 238, 600, 64, fill=C_GATE, stroke=S_GATE)
     cell("llama_q4", "<b>llama.cpp Q4 :4100</b><br><font style='font-size:9px'>Gemma4 E4B Q4_K_M • ctx 131072 (1 slot) • saída 16384</font>",
-         990, 340, 580, 58, fill=C_MODEL, stroke=S_MODEL)
+         960, 330, 600, 56, fill=C_MODEL, stroke=S_MODEL)
     cell("bridge_q3", "<b>Bridge Q3 :4125</b> — espelho pós-green<br><font style='font-size:9px'>roda o mesmo manifestHash só depois do Q4 verde; nunca é gate</font>",
-         990, 432, 580, 66, fill=C_MIRROR, stroke=S_MIRROR)
+         960, 414, 600, 64, fill=C_MIRROR, stroke=S_MIRROR)
     cell("llama_q3", "<b>llama.cpp Q3 :4110</b><br><font style='font-size:9px'>Gemma4 E4B UD-Q3 • ctx 114688 (2×57344) • saída 16384</font>",
-         990, 526, 580, 58, fill=C_MODEL, stroke=S_MODEL)
+         960, 506, 600, 56, fill=C_MODEL, stroke=S_MODEL)
     cell("github", "<b>GitHub</b><br><font style='font-size:9px'>versiona AI.Manager; OpenCodeBridge até o arquivamento</font>",
-         990, 622, 580, 58, fill=C_EXT, stroke=S_EXT)
+         960, 598, 600, 56, fill=C_EXT, stroke=S_EXT)
     cell("cloudflare", "<b>Cloudflare (acesso externo)</b><br><font style='font-size:9px'>publica a UI; opcional nesta fase</font>",
-         990, 712, 580, 58, fill=C_EXT, stroke=S_EXT)
+         960, 684, 600, 56, fill=C_EXT, stroke=S_EXT)
 
     # ---- relacionamentos ----------------------------------------------------
     edge("user", "web", "HTTPS", exit=("0.5", "1"), entry=("0.5", "0"))
     edge("web", "api", "", exit=("1", "0.5"), entry=("0", "0.5"))
-    edge("api", "workflow", "", stroke=S_BRIDGE, exit=("0.15", "1"), entry=("0.85", "0"))
+    edge("api", "workflow", "serviços", stroke=S_BRIDGE, exit=("0.15", "1"), entry=("0.85", "0"))
     edge("workflow", "testbench", "", stroke=S_BRIDGE, exit=("1", "0.5"), entry=("0", "0.5"))
-    edge("api", "br_client", "in-process (1º corte)", stroke=S_BRIDGE, exit=("0.5", "1"), entry=("0.5", "0"))
-    edge("testbench", "br_flow", "plano/execução", stroke=S_BRIDGE, exit=("0.5", "1"), entry=("0.5", "0"))
-    edge("br_flow", "br_host", "chama /v1/responses", stroke=S_BRIDGE, exit=("0", "0.5"), entry=("1", "0.5"))
-    edge("br_host", "br_protocol", "", stroke=S_BRIDGE, exit=("1", "0.5"), entry=("0", "0.5"))
-    edge("br_flow", "br_contracts", "manifesto", stroke=S_BRIDGE, exit=("0.3", "1"), entry=("1", "0.5"))
-    edge("br_flow", "store", "gate + metadados", stroke=S_STORE, exit=("0", "0.85"), entry=("1", "0.3"))
-    edge("br_telemetry", "store", "evidência", stroke=S_STORE, exit=("0.5", "1"), entry=("0.8", "0"))
-    edge("seed", "testbench", "importação", stroke=S_STORE, dashed="1", exit=("0.5", "0"), entry=("1", "0.85"))
-    edge("donor", "br_client", "transição (Bridge.Client)", stroke=S_DONOR, dashed="1", exit=("0.9", "0"), entry=("0.5", "1"))
-    edge("br_host", "bridge_q4", "", stroke=S_GATE, exit=("1", "0.5"), entry=("0", "0.25"))
+    edge("api", "br_api", "HTTP", stroke=S_BRIDGE, exit=("1", "0.2"), entry=("1", "0.5"))
+    edge("br_client", "br_api", "HTTP/SSE", stroke=S_BRIDGE, exit=("0.5", "1"), entry=("0.5", "1"))
+    edge("br_contracts", "br_core", "DTOs", stroke=S_BRIDGE, exit=("0.5", "1"), entry=("0.12", "0"))
+    edge("br_hosting", "br_core", "flags/DI", stroke=S_BRIDGE, exit=("0.5", "1"), entry=("0.38", "0"))
+    edge("br_runner", "br_core", "serve/manifest", stroke=S_BRIDGE, exit=("0.5", "1"), entry=("0.62", "0"))
+    edge("br_api", "br_core", "tradução/stream", stroke=S_BRIDGE, exit=("0.5", "1"), entry=("0.88", "0"))
+    edge("seed", "store", "importação", stroke=S_STORE, dashed="1", exit=("0", "0.5"), entry=("1", "0.5"))
+    edge("donor", "br_client", "transição (Bridge.Client)", stroke=S_DONOR, dashed="1", exit=("0", "0.5"), entry=("0.5", "1"))
+    edge("testbench", "bridge_q4", "gate Q4", stroke=S_GATE, exit=("1", "0.5"), entry=("0", "0.35"))
+    edge("testbench", "bridge_q3", "espelho pós-green", stroke=S_MIRROR, dashed="1", exit=("1", "0.8"), entry=("0", "0.65"))
     edge("bridge_q4", "llama_q4", "inferência", stroke=S_GATE, exit=("0.7", "1"), entry=("0.7", "0"))
-    edge("br_flow", "bridge_q3", "espelho (pós-green)", stroke=S_MIRROR, dashed="1", exit=("1", "0.3"), entry=("0", "0.75"))
     edge("bridge_q3", "llama_q3", "inferência", stroke=S_MIRROR, exit=("0.7", "1"), entry=("0.7", "0"))
     edge("store", "github", "", stroke=S_EXT, dashed="1", exit=("0.5", "1"), entry=("0.1", "0.5"))
 

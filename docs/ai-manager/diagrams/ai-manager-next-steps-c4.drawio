@@ -4,83 +4,86 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="AI.Manager — C4 Nível 2 (Contêineres): absorção do OpenCodeBridge como AI.Manager.Bridge" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontStyle=1;fontColor=#18202E;" vertex="1" parent="1">
+        <mxCell id="title" value="AI.Manager — C4 Nível 2 (Contêineres): porte do OpenCodeBridge como AI.Manager.Bridge" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontStyle=1;fontColor=#18202E;" vertex="1" parent="1">
           <mxGeometry x="30" y="6" width="1180" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="AI.Manager é o concentrador da solução de treinamento e testes de modelos locais de baixa instrução  •  AI.Manager.Bridge é projeto interno (extraível)  •  Q4 :4124 = gate  •  Q3 :4125 = espelho pós-green" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#4E5A6C;" vertex="1" parent="1">
-          <mxGeometry x="30" y="42" width="1180" height="22" as="geometry" />
+        <mxCell id="subtitle" value="AI.Manager é o concentrador da solução de treinamento e testes de modelos locais de baixa instrução  •  porte 2026-10-25: Core/Contracts/Client/Hosting/Api/Runner  •  Q4 :4124 = gate  •  Q3 :4125 = espelho pós-green" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;fontColor=#4E5A6C;" vertex="1" parent="1">
+          <mxGeometry x="30" y="42" width="1200" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="legend" value="&lt;b&gt;Legenda&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;—— chamada síncrona&amp;nbsp;&amp;nbsp;&amp;nbsp;-- evidência / migração&lt;br&gt;■ AI.Manager&amp;nbsp;&amp;nbsp; ■ AI.Manager.Bridge&amp;nbsp;&amp;nbsp; ■ doador&amp;nbsp;&amp;nbsp; ■ modelo&amp;nbsp;&amp;nbsp; ■ storage&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=left;spacingLeft=10;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+        <mxCell id="legend" value="&lt;b&gt;Legenda&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;—— chamada síncrona&amp;nbsp;&amp;nbsp;&amp;nbsp;-- evidência / fase 2 / migração&lt;br&gt;■ AI.Manager&amp;nbsp;&amp;nbsp; ■ AI.Manager.Bridge&amp;nbsp;&amp;nbsp; ■ doador&amp;nbsp;&amp;nbsp; ■ modelo&amp;nbsp;&amp;nbsp; ■ storage&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=left;spacingLeft=10;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
           <mxGeometry x="1240" y="10" width="330" height="62" as="geometry" />
         </mxCell>
         <mxCell id="boundary_ai" value="&lt;b&gt;AI.Manager&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px;color:#4E5A6C'&gt;sistema concentrador — experimento, workflow, circuito, enunciado, evidência&lt;/font&gt;" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;dashed=1;dashPattern=6 4;fillColor=#EAF2FD;strokeColor=#788496;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=14;spacingTop=8;fontSize=14;fontStyle=1;fontColor=#18202E;" vertex="1" parent="1">
-          <mxGeometry x="110" y="100" width="760" height="700" as="geometry" />
+          <mxGeometry x="90" y="96" width="790" height="720" as="geometry" />
         </mxCell>
-        <mxCell id="web" value="&lt;b&gt;Web UI&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;catálogo • wizard • mapa do circuito • console • evidência&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="148" y="152" width="320" height="78" as="geometry" />
+        <mxCell id="web" value="&lt;b&gt;Web UI&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;catálogo • wizard • mapa do circuito&lt;br&gt;console • evidência&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="120" y="146" width="330" height="72" as="geometry" />
         </mxCell>
-        <mxCell id="api" value="&lt;b&gt;API + Application Services&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;CRUD • ManifestBuilder • Validator • Acceptance • Runner Registry&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="500" y="152" width="330" height="78" as="geometry" />
+        <mxCell id="api" value="&lt;b&gt;API + Application Services&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;CRUD • ManifestBuilder • Validator&lt;br&gt;Acceptance • Runner Registry&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="490" y="146" width="350" height="72" as="geometry" />
         </mxCell>
-        <mxCell id="workflow" value="&lt;b&gt;Workflow existente&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;Experiment (Kind=Training|Test) • TrainingWorkflowCard • aprovação/status&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="148" y="262" width="320" height="92" as="geometry" />
+        <mxCell id="workflow" value="&lt;b&gt;Workflow existente&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;Experiment (Kind=Training|Test) • TrainingWorkflowCard&lt;br&gt;aprovação/status&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="120" y="246" width="330" height="82" as="geometry" />
         </mxCell>
-        <mxCell id="testbench" value="&lt;b&gt;TestBench / Domain&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;ExperimentPlan • CircuitStage/Step • TestScenario • TestRun • MirrorRun • Evidence&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="500" y="262" width="330" height="92" as="geometry" />
+        <mxCell id="testbench" value="&lt;b&gt;TestBench / Domain&lt;/b&gt; &lt;font color='#B06A2C'&gt;(fase 2)&lt;/font&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;ExperimentPlan • CircuitStage/Step • TestScenario&lt;br&gt;TestRun • MirrorRun • Evidence&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#D2D8E2;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="490" y="246" width="350" height="82" as="geometry" />
         </mxCell>
-        <mxCell id="boundary_bridge" value="&lt;b&gt;AI.Manager.Bridge&lt;/b&gt; — projeto interno (extraível após paridade)&lt;br&gt;&lt;font style='font-size:9px;color:#4E5A6C'&gt;transporte e controle de fluxo entre cliente e engine&lt;/font&gt;" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;dashed=0;dashPattern=6 4;fillColor=#E6EEFB;strokeColor=#3E6FB0;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=14;spacingTop=8;fontSize=14;fontStyle=1;fontColor=#18202E;" vertex="1" parent="1">
-          <mxGeometry x="140" y="384" width="700" height="246" as="geometry" />
+        <mxCell id="boundary_bridge" value="&lt;b&gt;AI.Manager.Bridge&lt;/b&gt; — projeto interno (extraível após paridade)&lt;br&gt;&lt;font style='font-size:9px;color:#4E5A6C'&gt;núcleo protocol-only • hosts Api/Runner • contratos/client/hosting&lt;/font&gt;" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;dashed=0;dashPattern=6 4;fillColor=#E6EEFB;strokeColor=#3E6FB0;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=14;spacingTop=8;fontSize=14;fontStyle=1;fontColor=#18202E;" vertex="1" parent="1">
+          <mxGeometry x="110" y="356" width="750" height="322" as="geometry" />
         </mxCell>
-        <mxCell id="br_host" value="&lt;b&gt;Host&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;Responses • chat • SSE • /api/status • /api/metrics&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="160" y="438" width="210" height="68" as="geometry" />
+        <mxCell id="br_contracts" value="&lt;b&gt;Contracts&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;DTOs • manifest • opções (sem ASP.NET)&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="125" y="404" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="br_protocol" value="&lt;b&gt;Protocol&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;tradução • tools • harness/tails • breaker • permissões&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="386" y="438" width="220" height="68" as="geometry" />
+        <mxCell id="br_client" value="&lt;b&gt;Client&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;HTTP/SSE tipado • host legado&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="275" y="404" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="br_flow" value="&lt;b&gt;Flow&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;TestCircuitDriver • DAG • ManifestCircuitTemplate • gate • artefatos&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="622" y="438" width="200" height="68" as="geometry" />
+        <mxCell id="br_hosting" value="&lt;b&gt;Hosting&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;flags • DI • bootstrap&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="425" y="404" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="br_contracts" value="&lt;b&gt;Contracts&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;manifesto • resultado • checksum&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="160" y="522" width="210" height="62" as="geometry" />
+        <mxCell id="br_runner" value="&lt;b&gt;Runner&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;serve • manifest&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="575" y="404" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="br_client" value="&lt;b&gt;Client&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;HTTP/SSE tipado (AI.Manager + host legado)&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="386" y="522" width="220" height="62" as="geometry" />
+        <mxCell id="br_api" value="&lt;b&gt;Api&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;REST + Swagger • /v1&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="725" y="404" width="125" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="br_telemetry" value="&lt;b&gt;Telemetria / evidência&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;events.jsonl • summary.tsv • hashes&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="622" y="522" width="200" height="62" as="geometry" />
+        <mxCell id="br_core" value="&lt;b&gt;Core (Rochas.AI.Manager.Bridge)&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;Responses↔chat • tools • MainHarness base + HarnessTails&lt;br&gt;anti-repeat • breaker • QwenStandard • ContextGuard&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="250" y="510" width="460" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="br_note" value="&lt;b&gt;Harness (core):&lt;/b&gt; &lt;font style='font-size:9px'&gt;MainHarness.Apply(messages, enabled) • gate por cliente (User-Agent contém &quot;opencode&quot;; nunca sufixo -build) • base e tails coexistem • TailScope managed|all|off • ForClient isola a decisão por requisição&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#F8FAFF;strokeColor=#3E6FB0;strokeWidth=1;fontColor=#18202E;align=left;spacingLeft=10;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="125" y="606" width="725" height="48" as="geometry" />
         </mxCell>
         <mxCell id="store" value="&lt;b&gt;SQLite&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;definições • versões • runs • metadados de evidência • auditoria&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFF7E0;strokeColor=#B09029;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="148" y="652" width="320" height="78" as="geometry" />
+          <mxGeometry x="120" y="700" width="330" height="72" as="geometry" />
         </mxCell>
-        <mxCell id="seed" value="&lt;b&gt;Seed do WAR&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;war-baseline.json (importação, nunca runtime) • WarBaselineSeeder idempotente&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFF7E0;strokeColor=#B09029;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="500" y="652" width="330" height="78" as="geometry" />
+        <mxCell id="seed" value="&lt;b&gt;Seed do WAR&lt;/b&gt; &lt;font color='#B06A2C'&gt;(fase 2)&lt;/font&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;war-baseline.json (importação, nunca runtime) • WarBaselineSeeder idempotente&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFF7E0;strokeColor=#B09029;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="490" y="700" width="350" height="72" as="geometry" />
         </mxCell>
         <mxCell id="boundary_donor" value="&lt;b&gt;Rochas.OpenCodeBridge&lt;/b&gt; — doador / transitório (Git separado até o cutover)&lt;br&gt;&lt;font style='font-size:9px;color:#4E5A6C'&gt;congelado para features; consome AI.Manager.Bridge durante a transição; arquivado após paridade + 3 gates Q4 verdes&lt;/font&gt;" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;dashed=1;dashPattern=6 4;fillColor=#F4F4F5;strokeColor=#8A8A8A;strokeWidth=1;verticalAlign=top;align=left;spacingLeft=14;spacingTop=8;fontSize=14;fontStyle=1;fontColor=#18202E;" vertex="1" parent="1">
-          <mxGeometry x="110" y="818" width="760" height="118" as="geometry" />
+          <mxGeometry x="90" y="826" width="790" height="108" as="geometry" />
         </mxCell>
         <mxCell id="donor" value="&lt;b&gt;Host legado + Test + WAR&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;Program.cs (~245 KB) • TestCircuitDriver • WarTemplate • E2E belts • Web&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FFFFFF;strokeColor=#8A8A8A;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="148" y="866" width="682" height="56" as="geometry" />
+          <mxGeometry x="120" y="870" width="730" height="50" as="geometry" />
         </mxCell>
         <mxCell id="user" value="&lt;b&gt;Autor / operador&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;pessoa — guia o circuito e aprova o experimento&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#F7F8FA;strokeColor=#788496;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="990" y="140" width="580" height="66" as="geometry" />
+          <mxGeometry x="960" y="146" width="600" height="64" as="geometry" />
         </mxCell>
         <mxCell id="bridge_q4" value="&lt;b&gt;Bridge Q4 :4124&lt;/b&gt; — GATE&lt;br&gt;&lt;font style='font-size:9px'&gt;instância estável; único critério de aceite&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#FDF0E6;strokeColor=#B06A2C;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="990" y="246" width="580" height="66" as="geometry" />
+          <mxGeometry x="960" y="238" width="600" height="64" as="geometry" />
         </mxCell>
         <mxCell id="llama_q4" value="&lt;b&gt;llama.cpp Q4 :4100&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;Gemma4 E4B Q4_K_M • ctx 131072 (1 slot) • saída 16384&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#EAF6EE;strokeColor=#4E8A63;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="990" y="340" width="580" height="58" as="geometry" />
+          <mxGeometry x="960" y="330" width="600" height="56" as="geometry" />
         </mxCell>
         <mxCell id="bridge_q3" value="&lt;b&gt;Bridge Q3 :4125&lt;/b&gt; — espelho pós-green&lt;br&gt;&lt;font style='font-size:9px'&gt;roda o mesmo manifestHash só depois do Q4 verde; nunca é gate&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#F3F0FB;strokeColor=#6A4FB0;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="990" y="432" width="580" height="66" as="geometry" />
+          <mxGeometry x="960" y="414" width="600" height="64" as="geometry" />
         </mxCell>
         <mxCell id="llama_q3" value="&lt;b&gt;llama.cpp Q3 :4110&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;Gemma4 E4B UD-Q3 • ctx 114688 (2×57344) • saída 16384&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#EAF6EE;strokeColor=#4E8A63;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="990" y="526" width="580" height="58" as="geometry" />
+          <mxGeometry x="960" y="506" width="600" height="56" as="geometry" />
         </mxCell>
         <mxCell id="github" value="&lt;b&gt;GitHub&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;versiona AI.Manager; OpenCodeBridge até o arquivamento&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#F7F8FA;strokeColor=#788496;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="990" y="622" width="580" height="58" as="geometry" />
+          <mxGeometry x="960" y="598" width="600" height="56" as="geometry" />
         </mxCell>
         <mxCell id="cloudflare" value="&lt;b&gt;Cloudflare (acesso externo)&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:9px'&gt;publica a UI; opcional nesta fase&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fontSize=12;fillColor=#F7F8FA;strokeColor=#788496;strokeWidth=1;fontColor=#18202E;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
-          <mxGeometry x="990" y="712" width="580" height="58" as="geometry" />
+          <mxGeometry x="960" y="684" width="600" height="56" as="geometry" />
         </mxCell>
         <mxCell id="e_user_web" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#788496;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="user" target="web">
           <mxGeometry relative="1" as="geometry" />
@@ -88,46 +91,43 @@
         <mxCell id="e_web_api" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#788496;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="web" target="api">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_api_workflow" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.15;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="api" target="workflow">
+        <mxCell id="e_api_workflow" value="serviços" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.15;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="api" target="workflow">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_workflow_testbench" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="workflow" target="testbench">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_api_br_client" value="in-process (1º corte)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="api" target="br_client">
+        <mxCell id="e_api_br_api" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="api" target="br_api">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_testbench_br_flow" value="plano/execução" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="testbench" target="br_flow">
+        <mxCell id="e_br_client_br_api" value="HTTP/SSE" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_client" target="br_api">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_br_flow_br_host" value="chama /v1/responses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_flow" target="br_host">
+        <mxCell id="e_br_contracts_br_core" value="DTOs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.12;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_contracts" target="br_core">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_br_host_br_protocol" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_host" target="br_protocol">
+        <mxCell id="e_br_hosting_br_core" value="flags/DI" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.38;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_hosting" target="br_core">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_br_flow_br_contracts" value="manifesto" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_flow" target="br_contracts">
+        <mxCell id="e_br_runner_br_core" value="serve/manifest" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.62;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_runner" target="br_core">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_br_flow_store" value="gate + metadados" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#B09029;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.85;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_flow" target="store">
+        <mxCell id="e_br_api_br_core" value="tradução/stream" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#3E6FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.88;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_api" target="br_core">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_br_telemetry_store" value="evidência" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#B09029;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_telemetry" target="store">
+        <mxCell id="e_seed_store" value="importação" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#B09029;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=4 4;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="seed" target="store">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_seed_testbench" value="importação" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#B09029;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=4 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.85;entryDx=0;entryDy=0;" edge="1" parent="1" source="seed" target="testbench">
+        <mxCell id="e_donor_br_client" value="transição (Bridge.Client)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#8A8A8A;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=4 4;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="donor" target="br_client">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_donor_br_client" value="transição (Bridge.Client)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#8A8A8A;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=4 4;exitX=0.9;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="donor" target="br_client">
+        <mxCell id="e_testbench_bridge_q4" value="gate Q4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#B06A2C;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="testbench" target="bridge_q4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_br_host_bridge_q4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#B06A2C;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_host" target="bridge_q4">
+        <mxCell id="e_testbench_bridge_q3" value="espelho pós-green" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#6A4FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=4 4;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.65;entryDx=0;entryDy=0;" edge="1" parent="1" source="testbench" target="bridge_q3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_bridge_q4_llama_q4" value="inferência" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#B06A2C;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="bridge_q4" target="llama_q4">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_br_flow_bridge_q3" value="espelho (pós-green)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#6A4FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=4 4;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="br_flow" target="bridge_q3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_bridge_q3_llama_q3" value="inferência" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endSize=6;strokeColor=#6A4FB0;strokeWidth=1.2;fontSize=9;fontColor=#4E5A6C;labelBackgroundColor=#FFFFFF;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="bridge_q3" target="llama_q3">
