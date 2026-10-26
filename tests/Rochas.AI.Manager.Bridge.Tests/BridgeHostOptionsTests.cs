@@ -29,6 +29,27 @@ public class BridgeHostOptionsTests
     }
 
     [Fact]
+    public void MainHarnessELigadoPorPadraoComTailScopeManaged()
+    {
+        var options = BridgeHostOptions.Parse(Array.Empty<string>());
+
+        Assert.True(options.MainHarness);
+        Assert.Equal("managed", options.TailScope);
+    }
+
+    [Fact]
+    public void TailScopeDecideOCaminho()
+    {
+        var all = BridgeHostOptions.Parse(new[] { "--tail-scope", "all" });
+        var off = BridgeHostOptions.Parse(new[] { "--tail-scope", "off" });
+
+        Assert.Equal("all", all.TailScope);
+        Assert.Equal("off", off.TailScope);
+        Assert.Throws<ArgumentException>(() =>
+            BridgeHostOptions.Parse(new[] { "--tail-scope", "turbo" }));
+    }
+
+    [Fact]
     public void HelpNaoExigeValores()
     {
         var options = BridgeHostOptions.Parse(new[] { "--help" });

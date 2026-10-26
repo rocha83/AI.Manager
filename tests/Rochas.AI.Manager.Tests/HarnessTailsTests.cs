@@ -6,22 +6,27 @@ namespace Rochas.AI.Manager.Tests;
 public sealed class HarnessTailsTests
 {
     [Fact]
-    public void BehaviorTemRegraDeEscritaContraRepeticao()
+    public void BehaviorMantemSoODeltaDoCanal()
     {
         string behavior = HarnessTails.Behavior;
 
-        Assert.Contains("COMPORTAMENTO (escrita)", behavior);
-        Assert.Contains("edit no trecho exato", behavior);
-        Assert.Contains("mesmos argumentos", behavior);
-        Assert.Contains("max 2 tentativas", behavior);
+        Assert.Contains("delta da bridge", behavior);
+        Assert.Contains("TOOLS PRIMEIRO", behavior);
+        Assert.Contains("PERSISTENCIA", behavior);
+        Assert.Contains("PRIORIDADE", behavior);
+        // O que a base ja cobre nao se repete na cauda.
+        Assert.DoesNotContain("auto-apresente", behavior);
+        Assert.DoesNotContain("max 2 tentativas", behavior);
     }
 
     [Fact]
-    public void BehaviorMantemWorkspaceEFormato()
+    public void MainHarnessCobreEscritaSemLoopEFormato()
     {
-        Assert.Contains("COMPORTAMENTO (workspace)", HarnessTails.Behavior);
-        Assert.Contains("um nivel abaixo", HarnessTails.Behavior);
-        Assert.Contains("COMPORTAMENTO (formato)", HarnessTails.Behavior);
+        // A regra de escrita/workspace migrou da cauda para a base enxuta.
+        Assert.Contains("write só para arquivo novo", MainHarness.Text);
+        Assert.Contains("edit/sed", MainHarness.Text);
+        Assert.Contains("um nível abaixo", MainHarness.Text);
+        Assert.Contains("repita a mesma chamada/caminho", MainHarness.Text);
         Assert.Contains("$...$", HarnessTails.Behavior);
     }
 

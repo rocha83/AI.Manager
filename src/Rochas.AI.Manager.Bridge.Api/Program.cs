@@ -22,6 +22,7 @@ var bridgeOptions = new BridgeOptions
     ContextTokens = options.ContextWindow,
     Harness = options.Harness,
     MainHarness = options.MainHarness,
+    TailScope = options.TailScope,
     LegacyHarness = options.LegacyHarness,
     QwenStandard = options.QwenStandard,
     ToolStrategy = options.ToolStrategy,
@@ -170,6 +171,7 @@ app.MapPost("/v1/responses", async (
 {
     if (!TryParseObject(body, out var request))
         return Results.BadRequest(new { error = "json object required" });
+    var effective = bridgeOptions.ForClient(context.Request.Headers.UserAgent.ToString());
 
     var isStream = request["stream"] is JsonValue streamValue
         && streamValue.TryGetValue<bool>(out var streamRequested)
@@ -179,7 +181,7 @@ app.MapPost("/v1/responses", async (
     {
         try
         {
-            var result = await proxy.CompleteAsync(request, bridgeOptions, cancellationToken);
+            var result = await proxy.CompleteAsync(request, effective, cancellationToken);
             return Results.Json(result.Body);
         }
         catch (BridgeProxyException exception)
@@ -197,7 +199,7 @@ app.MapPost("/v1/responses", async (
 
     try
     {
-        await foreach (var item in proxy.StreamAsync(request, bridgeOptions, cancellationToken))
+        await foreach (var item in proxy.StreamAsync(request, effective, cancellationToken))
         {
             await context.Response.WriteAsync(
                 $"event: {item.Type}\ndata: {item.Payload.ToJsonString(JsonOps.SerializerOptions)}\n\n",
@@ -238,6 +240,7 @@ app.MapPost("/v1/chat/completions", async (
 {
     if (!TryParseObject(body, out var request))
         return Results.BadRequest(new { error = "json object required" });
+    var effective = bridgeOptions.ForClient(context.Request.Headers.UserAgent.ToString());
 
     var isStream = request["stream"] is JsonValue streamValue
         && streamValue.TryGetValue<bool>(out var streamRequested)
@@ -247,7 +250,7 @@ app.MapPost("/v1/chat/completions", async (
     {
         try
         {
-            var result = await proxy.ForwardChatAsync(request, bridgeOptions, cancellationToken);
+            var result = await proxy.ForwardChatAsync(request, effective, cancellationToken);
             return Results.Json(result.Body);
         }
         catch (BridgeProxyException exception)
@@ -265,7 +268,7 @@ app.MapPost("/v1/chat/completions", async (
 
     try
     {
-        await foreach (var line in proxy.ForwardChatStreamAsync(request, bridgeOptions, cancellationToken))
+        await foreach (var line in proxy.ForwardChatStreamAsync(request, effective, cancellationToken))
         {
             await context.Response.WriteAsync(line + "\n", cancellationToken);
             await context.Response.Body.FlushAsync(cancellationToken);

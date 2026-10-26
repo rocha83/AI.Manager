@@ -1,33 +1,26 @@
 namespace Rochas.AI.Manager.Bridge;
 
 /// <summary>
-/// Caudas de inducao do harness. O texto abaixo e o fallback do motor; o
-/// deployment sobrescreve por anexo do perfil (banco) ou flags do host. O nucleo
-/// base (MainHarness) e separado: ele substitui o system do cliente no caminho
-/// gerido, enquanto as caudas sao o DELTA especifico do canal/workspace.
+/// Caudas de inducao do harness. Os textos abaixo sao fallback do codigo; o
+/// deployment ajusta em appsettings (harnessBehaviorTail/harnessToolsTail) ou
+/// CLI (--harness-behavior-tail/--harness-tools-tail). O nucleo base
+/// (MainHarness) e hardcoded e nao passa por aqui.
 /// </summary>
 public static class HarnessTails
 {
     /// <summary>
-    /// Delta de comportamento da bridge. Mantido curto de proposito: o nucleo
-    /// mora no <see cref="MainHarness"/>; aqui fica o que e deste canal.
+    /// Delta de comportamento da bridge (o nucleo ja mora no MainHarness).
+    /// Mantido curto de proposito: so o que e especifico deste canal/workspace.
     /// </summary>
     public const string DefaultBehavior =
-        "COMPORTAMENTO (workspace): procure pastas/arquivos citados tambem um nivel abaixo e na arvore de subpastas, tanto do workspace quanto dos paths citados. " +
-        "COMPORTAMENTO (formato): em conversa use Unicode (setas, <=, pi, somatorio) em vez de LaTeX; use $...$ so em bloco de codigo ou formula, onde o cliente renderiza. " +
-        "COMPORTAMENTO (escrita): use write UMA vez por arquivo e por conteudo; se o arquivo ja existe, correcao e edit no trecho exato (write so para arquivo novo ou reescrita integral pedida). " +
-        "Nunca reemita chamada com os mesmos argumentos (mesmo path + mesmo conteudo) que ja aparece no historico: antes de repetir, confirme o estado com read/grep. " +
-        "Se a tool retornou erro, leia a mensagem e mude os argumentos (max 2 tentativas), nunca repita identico. Nao reescreva o arquivo inteiro para corrigir uma linha. " +
+        "COMPORTAMENTO (delta da bridge; a base ja cobre postura, caminhos e erros): " +
+        "Formato: em conversa use Unicode (setas, <=, pi, somatorio) em vez de LaTeX; use $...$ so em bloco de codigo ou formula, onde o cliente renderiza. " +
         "TOOLS PRIMEIRO: em enunciado que pede execucao, a PRIMEIRA saida e a tool call; ZERO linha de prosa antes do primeiro disparo e nenhum texto entre uma call e a proxima. " +
         "Excecao: no maximo 1 linha entre calls dependentes, so para indicar o proximo passo. " +
         "So escreva ao usuario depois da ultima acao, com evidencia real (trecho de log, saida de comando). " +
-        "Se falhar, leia o erro, tente outra abordagem; apos 2 tentativas, explique a dificuldade e peca uma sugestao de proximo passo. " +
         "PERSISTENCIA: cada resultado de tool e insumo da proxima call no MESMO turno; nao espere 'siga' e nao encerre com 'vou fazer', 'iniciando' ou confirmacao. " +
-        "PRIORIDADE: se o master mandar explicar antes de comando nao trivial, execute primeiro e mostre a saida; a explicacao, se necessaria, vem depois, em 1 linha. " +
-        "Nao se auto-apresente, nao peca confirmacao para o obvio; responda na lingua do usuario. " +
-        "Resposta final curta: no maximo 2 frases, com o que foi feito e a evidencia.";
+        "PRIORIDADE: se o master mandar explicar antes de comando nao trivial, execute primeiro e mostre a saida; a explicacao, se necessaria, vem depois, em 1 linha.";
 
-    /// <summary>Como usar as tools (sem repetir o que o grammar/canal nativo ja garante).</summary>
     public const string DefaultTools =
         "MODO DE USO DAS TOOLS (complemento ao harness; NAO repete regra de comportamento): " +
         "SHELL: um comando por chamada; nunca quebre linha com escape literal; para script, write + `bash <arquivo>`; `cd` NAO persiste entre chamadas — use `cd <dir> && <cmd>` na mesma call. " +
@@ -56,9 +49,9 @@ public static class HarnessTails
     public static string Compose(string? system, bool harness, string? behavior, string? tools)
     {
         if (!harness) return system ?? "";
-        string text = (system ?? "").Trim();
-        if (!string.IsNullOrWhiteSpace(behavior)) text = (text.Length > 0 ? text + "\n\n" : "") + behavior;
-        if (!string.IsNullOrWhiteSpace(tools)) text = (text.Length > 0 ? text + "\n\n" : "") + tools;
-        return text;
+        string t = (system ?? "").Trim();
+        if (!string.IsNullOrWhiteSpace(behavior)) t = (t.Length > 0 ? t + "\n\n" : "") + behavior;
+        if (!string.IsNullOrWhiteSpace(tools)) t = (t.Length > 0 ? t + "\n\n" : "") + tools;
+        return t;
     }
 }

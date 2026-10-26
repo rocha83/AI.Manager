@@ -21,30 +21,39 @@ O nucleo nao referencia `Application`, `Domain`, ASP.NET, Swagger nem banco.
 
 ## Main harness
 
-`MainHarness.Text` e o system prompt sintetizado do caminho gerido (model sem
-sufixo de role). `MainHarness.Apply(messages, hasProfile, enabled)` substitui o
-system do cliente e preserva os blocos dinamicos:
+`MainHarness.Text` e a base enxuta do caminho gerido. `MainHarness.Apply(messages,
+enabled)` substitui o system do cliente e preserva os blocos dinamicos:
 
 * `<env>...</env>`;
 * `<available_skills>...</available_skills>`;
 * linha `Today's date:`;
 * instrucoes pequenas do cliente (em `INSTRUCOES DO CLIENTE`).
 
-Nao substitui o master do opencode (`# Code Mode`, `Instructions from:`,
-`You are opencode`, system > 6000 chars). Quando o main harness aplica, as
-caudas de harness sao dispensadas — o nucleo corretivo mora em um lugar so.
+O gate e o **cliente**, nunca o sufixo do modelo: hosts chamam
+`bridgeOptions.ForClient(User-Agent)` e o core so aplica quando
+`MainHarness && !OpencodeClient`. Assim o WAR (`<modelo>-build`) recebe a base
+e o CLI do opencode preserva o Code Mode. Nao substitui o master do opencode
+(`# Code Mode`, `Instructions from:`, `You are opencode`, system > 6000 chars).
 
-Flag: `--main-harness` / `--no-main-harness` (default desligado no componente;
-o host legado ligava por padrao).
+Base e tails **coexistem**: o MainHarness e a base; as tails sao o incremento
+do canal. No host, `--main-harness` e o default; no `BridgeOptions` a flag
+segue opt-in para consumidores diretos.
 
 ## Tails
 
 `HarnessTails.DefaultBehavior` e `HarnessTails.DefaultTools` sao o delta deste
-canal (workspace, formato, escrita anti-repeticao, tools primeiro, persistencia).
-`HarnessTails.Compose(system, harness, behavior, tools)` monta o system na ordem
-`system -> behavior -> tools`. O banco (anexo `Behavior`/`ToolsUsage`) vence o
-literal. Os aliases `HarnessTails.Behavior`/`Tools` continuam existindo para o
-seeder e os testes do produto.
+canal (formato, tools primeiro, persistencia, prioridade). O que a base ja cobre
+(escrita sem loop, caminhos, 2 tentativas, resposta curta) nao se repete na
+cauda. `HarnessTails.Compose(system, harness, behavior, tools)` monta o system
+na ordem `system -> behavior -> tools`. O banco (anexo `Behavior`/`ToolsUsage`)
+vence o literal. Os aliases `HarnessTails.Behavior`/`Tools` continuam existindo
+para o seeder e os testes do produto.
+
+`BridgeOptions.TailScope` decide onde as caudas valem:
+
+* `managed` (default) — todos menos o CLI do opencode (User-Agent);
+* `all` — tambem no CLI do opencode;
+* `off` — nenhuma.
 
 ## Protocolo Responses <-> chat
 
@@ -159,12 +168,13 @@ dotnet run --project src/Rochas.AI.Manager.Bridge.Runner -c Release -- \
   --workspace /tmp/opencode --model smoke
 ```
 
-Flags novas: `--main-harness`, `--no-main-harness`, `--legacy-harness`,
-`--no-legacy-harness`, `--qwen-standard`, `--no-tool-strategy`,
-`--sampling-passthrough`, `--breaker-soft <n>`, `--breaker-hard <n>`.
-Ambiente: `BRIDGE_MAIN_HARNESS`, `BRIDGE_LEGACY_HARNESS`,
-`BRIDGE_QWEN_STANDARD`, `BRIDGE_TOOL_STRATEGY`, `BRIDGE_BREAKER_SOFT`,
-`BRIDGE_BREAKER_HARD`, `BRIDGE_SAMPLING_PASSTHROUGH`.
+Flags novas: `--main-harness` (default), `--no-main-harness`,
+`--tail-scope managed|all|off`, `--legacy-harness`, `--no-legacy-harness`,
+`--qwen-standard`, `--no-tool-strategy`, `--sampling-passthrough`,
+`--breaker-soft <n>`, `--breaker-hard <n>`.
+Ambiente: `BRIDGE_MAIN_HARNESS`, `BRIDGE_TAIL_SCOPE`,
+`BRIDGE_LEGACY_HARNESS`, `BRIDGE_QWEN_STANDARD`, `BRIDGE_TOOL_STRATEGY`,
+`BRIDGE_BREAKER_SOFT`, `BRIDGE_BREAKER_HARD`, `BRIDGE_SAMPLING_PASSTHROUGH`.
 
 ## Gate e espelho
 

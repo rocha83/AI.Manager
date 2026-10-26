@@ -41,8 +41,11 @@ public static class ResponsesToChat
         string thinking = string.IsNullOrEmpty(serverThinking) ? options.Thinking : serverThinking;
 
         var messages = InputToMessages(request["input"], request["instructions"], options);
-        bool mainApplied = MainHarness.Apply(messages, options.HasProfile, options.MainHarness);
-        if (!mainApplied) ApplyTails(messages, options);
+        // Base do caminho gerido: o discriminador e o CLIENTE (User-Agent),
+        // nunca o sufixo do modelo. O CLI do opencode traz o proprio harness.
+        MainHarness.Apply(messages, options.MainHarness && !options.OpencodeClient);
+        // Tails sao o incremento sobre a base: coexistem com o MainHarness.
+        ApplyTails(messages, options);
 
         string? breakerTrip = null;
         if (options.BreakerSoft > 0)
@@ -252,6 +255,13 @@ public static class ResponsesToChat
     private static void ApplyTails(JsonArray messages, BridgeOptions options)
     {
         if (!options.Harness) return;
+        bool tails = options.TailScope switch
+        {
+            "off" => false,
+            "all" => true,
+            _ => !options.OpencodeClient
+        };
+        if (!tails) return;
         if (messages.Count == 0 || messages[0] is not JsonObject system) return;
         if (system["role"]?.GetValue<string>() != "system") return;
         if (system["content"] is not JsonValue value || !value.TryGetValue<string>(out string? text)) return;

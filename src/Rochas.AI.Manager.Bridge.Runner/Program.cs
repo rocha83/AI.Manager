@@ -108,6 +108,7 @@ internal static class Program
             ContextTokens = options.ContextWindow,
             Harness = options.Harness,
             MainHarness = options.MainHarness,
+            TailScope = options.TailScope,
             LegacyHarness = options.LegacyHarness,
             QwenStandard = options.QwenStandard,
             ToolStrategy = options.ToolStrategy,
@@ -288,6 +289,7 @@ internal static class Program
     {
         var request = await ReadJsonAsync(context);
         if (request is null) return;
+        var effective = bridgeOptions.ForClient(context.Request.UserAgent);
 
         var isStream = request["stream"] is JsonValue streamValue
             && streamValue.TryGetValue<bool>(out var streamRequested)
@@ -295,7 +297,7 @@ internal static class Program
 
         if (!isStream)
         {
-            var result = await proxy.CompleteAsync(request, bridgeOptions);
+            var result = await proxy.CompleteAsync(request, effective);
             await WriteJsonAsync(context, HttpStatusCode.OK, result.Body);
             return;
         }
@@ -306,7 +308,7 @@ internal static class Program
         context.Response.Headers["X-Accel-Buffering"] = "no";
         context.Response.SendChunked = true;
 
-        await foreach (var item in proxy.StreamAsync(request, bridgeOptions))
+        await foreach (var item in proxy.StreamAsync(request, effective))
         {
             await WriteLineAsync(context,
                 $"event: {item.Type}\ndata: {item.Payload.ToJsonString(JsonOps.SerializerOptions)}\n\n");
@@ -321,6 +323,7 @@ internal static class Program
     {
         var request = await ReadJsonAsync(context);
         if (request is null) return;
+        var effective = bridgeOptions.ForClient(context.Request.UserAgent);
 
         var isStream = request["stream"] is JsonValue streamValue
             && streamValue.TryGetValue<bool>(out var streamRequested)
@@ -328,7 +331,7 @@ internal static class Program
 
         if (!isStream)
         {
-            var result = await proxy.ForwardChatAsync(request, bridgeOptions);
+            var result = await proxy.ForwardChatAsync(request, effective);
             await WriteJsonAsync(context, HttpStatusCode.OK, result.Body);
             return;
         }
@@ -339,7 +342,7 @@ internal static class Program
         context.Response.Headers["X-Accel-Buffering"] = "no";
         context.Response.SendChunked = true;
 
-        await foreach (var line in proxy.ForwardChatStreamAsync(request, bridgeOptions))
+        await foreach (var line in proxy.ForwardChatStreamAsync(request, effective))
             await WriteLineAsync(context, line + "\n");
     }
 

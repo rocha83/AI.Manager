@@ -19,6 +19,8 @@ public static class BridgeComponent
         "context-guard",
         "main-harness",
         "harness-tails",
+        "tail-scope",
+        "client-discriminator",
         "legacy-harness",
         "qwen-standard",
         "tool-strategy",

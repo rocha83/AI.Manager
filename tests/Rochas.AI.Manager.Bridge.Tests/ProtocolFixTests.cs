@@ -7,6 +7,7 @@ public class ProtocolFixTests
     private static BridgeOptions Plain() => new()
     {
         Harness = false,
+        MainHarness = false,
         ToolStrategy = false,
         BreakerSoft = 0,
         BreakerHard = 0,
@@ -230,7 +231,7 @@ public class ProtocolFixTests
             ["content"] = "<env>ENV-REAL</env> <available_skills>SKILL-X</available_skills> instrucao pequena"
         });
 
-        Assert.True(MainHarness.Apply(messages, hasProfile: false, enabled: true));
+        Assert.True(MainHarness.Apply(messages, enabled: true));
         string system = messages[0]!["content"]!.GetValue<string>();
 
         Assert.StartsWith(MainHarness.Text, system);
@@ -248,13 +249,13 @@ public class ProtocolFixTests
             ["content"] = "# Code Mode\ninstrucoes do opencode"
         });
 
-        Assert.False(MainHarness.Apply(messages, hasProfile: false, enabled: true));
+        Assert.False(MainHarness.Apply(messages, enabled: true));
         Assert.Equal("# Code Mode\ninstrucoes do opencode",
             messages[0]!["content"]!.GetValue<string>());
     }
 
     [Fact]
-    public void MainHarnessDispensaAsCaudas()
+    public void MainHarnessCoexisteComAsCaudas()
     {
         var request = new JsonObject
         {
@@ -271,8 +272,39 @@ public class ProtocolFixTests
         string system = result.Body["messages"]![0]!["content"]!.GetValue<string>();
 
         Assert.StartsWith(MainHarness.Text, system);
+        Assert.Contains("BEHAVIOR-TAIL", system);
+        Assert.Contains("TOOLS-TAIL", system);
+    }
+
+    [Fact]
+    public void MainHarnessNaoBloqueiaPorSufixoDeRole()
+    {
+        var request = new JsonObject { ["input"] = "oi" };
+        var options = Plain();
+        options.MainHarness = true;
+        options.HasProfile = true;
+
+        var result = ResponsesToChat.Convert(request, options, "m");
+        string system = result.Body["messages"]![0]!["content"]!.GetValue<string>();
+
+        Assert.StartsWith(MainHarness.Text, system);
+    }
+
+    [Fact]
+    public void MainHarnessNaoAplicaNoCliOpencode()
+    {
+        var request = new JsonObject { ["input"] = "oi" };
+        var options = Plain();
+        options.MainHarness = true;
+        options.OpencodeClient = true;
+        options.BehaviorTail = "BEHAVIOR-TAIL";
+
+        var result = ResponsesToChat.Convert(request, options, "m");
+        string system = result.Body["messages"]![0]!["content"]!.GetValue<string>();
+
+        // Base e tails ficam de fora no escopo "managed" para o CLI do opencode.
+        Assert.False(system.StartsWith(MainHarness.Text));
         Assert.DoesNotContain("BEHAVIOR-TAIL", system);
-        Assert.DoesNotContain("TOOLS-TAIL", system);
     }
 
     [Fact]

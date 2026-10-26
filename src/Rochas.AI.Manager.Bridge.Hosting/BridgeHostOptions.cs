@@ -22,7 +22,8 @@ public sealed class BridgeHostOptions
     public int MaxTokens { get; set; }
     public int ContextWindow { get; set; }
     public bool Harness { get; set; } = true;
-    public bool MainHarness { get; set; }
+    public bool MainHarness { get; set; } = true;
+    public string TailScope { get; set; } = "managed";
     public bool LegacyHarness { get; set; }
     public bool QwenStandard { get; set; }
     public bool ToolStrategy { get; set; } = true;
@@ -51,8 +52,9 @@ public sealed class BridgeHostOptions
           --max-tokens <int>    teto de saida; 0 = sem teto
           --context <int>       janela de contexto do modelo (0 = desconhecida)
           --no-harness          desliga as caudas de comportamento/tools
-          --main-harness        substitui o system do cliente pelo MainHarness
-          --no-main-harness     preserva o system do cliente (default)
+          --main-harness        substitui o system do cliente pelo MainHarness (default)
+          --no-main-harness     preserva o system do cliente
+          --tail-scope <scope>  managed (default) | all | off
           --legacy-harness      strip de call narrada + guardrail textual
           --no-legacy-harness   caminho moderno, sem guardrail (default)
           --qwen-standard       ModelPrompt + traducao OpenAI/Alibaba
@@ -76,7 +78,8 @@ public sealed class BridgeHostOptions
             ModelId = ReadString("BRIDGE_MODEL", string.Empty),
             ApiKey = ReadString("BRIDGE_API_KEY", null),
             ArtifactRoot = ReadString("BRIDGE_ARTIFACT_ROOT", null),
-            MainHarness = ReadBool("BRIDGE_MAIN_HARNESS", false),
+            MainHarness = ReadBool("BRIDGE_MAIN_HARNESS", true),
+            TailScope = ReadString("BRIDGE_TAIL_SCOPE", "managed") ?? "managed",
             LegacyHarness = ReadBool("BRIDGE_LEGACY_HARNESS", false),
             QwenStandard = ReadBool("BRIDGE_QWEN_STANDARD", false),
             ToolStrategy = ReadBool("BRIDGE_TOOL_STRATEGY", true),
@@ -139,6 +142,9 @@ public sealed class BridgeHostOptions
                 case "--no-main-harness":
                     options.MainHarness = false;
                     break;
+                case "--tail-scope":
+                    options.TailScope = NextValue(args, ref i, arg).Trim().ToLowerInvariant();
+                    break;
                 case "--legacy-harness":
                     options.LegacyHarness = true;
                     break;
@@ -179,6 +185,10 @@ public sealed class BridgeHostOptions
 
         if (options.BreakerSoft < 0 || options.BreakerHard < 0)
             throw new ArgumentOutOfRangeException(nameof(options.BreakerSoft), "breaker-soft/breaker-hard nao podem ser negativos");
+
+        if (options.TailScope is not ("managed" or "all" or "off"))
+            throw new ArgumentException(
+                $"--tail-scope '{options.TailScope}' invalido; use managed, all ou off");
 
         if (options.BreakerHard > 0 && options.BreakerSoft > options.BreakerHard)
             throw new ArgumentException(

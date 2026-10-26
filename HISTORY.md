@@ -1,3 +1,29 @@
+## sync(harness): base enxuta do OCB, tails coexistentes e discriminador por cliente
+
+- Date: 2026-10-25
+
+- Puxado o estado atual do `OpenCodeBridge` (`2315dab` + `5be94c4`):
+  `MainHarness` vira base enxuta (144 linhas, sem hardcode de infra) e
+  `Apply(messages, enabled)` deixa de receber `hasProfile`; o gate passa a ser o
+  **cliente** (`User-Agent` contem "opencode"), nunca o sufixo do modelo — o WAR
+  usa `<modelo>-build` e agora recebe a base. O CLI do opencode preserva o
+  Code Mode.
+- `HarnessTails.DefaultBehavior` fica so com o delta do canal (formato, tools
+  primeiro, persistencia, prioridade); escrita sem loop, caminhos e "2
+  tentativas" migraram para a base. `Compose` e os aliases
+  `Behavior`/`Tools` foram preservados para o seeder e os testes do produto.
+- Base e tails **coexistem** (removida a dispensa `!mainHarness`).
+  `BridgeOptions.TailScope` = `managed`|`all`|`off` (default `managed`: todos
+  menos o CLI do opencode). `BridgeOptions.ForClient(User-Agent)` isola a
+  decisao por requisicao — o host e singleton e nao muta a instancia
+  compartilhada. Flags: `--tail-scope`/`BRIDGE_TAIL_SCOPE`; `--main-harness`
+  passa a ser default no host.
+- **Prova**: `dotnet build Rochas.AI.Manager.slnx -c Release` = 0 erros /
+  106 warnings; `Bridge.Tests` = 102 PASS; `AI.Manager.Tests` = 97 PASS +
+  1 SKIP. Nao portado por ser fora do transporte: `Tools/*` (executor do Core),
+  `ChatterGuard` (stateful por sessao), `RoleProfiles`/`PermissionPolicy`
+  (host/role).
+
 ## feat(ai-manager-bridge): nucleo de protocolo independente + paridade OpenCodeBridge (main harness, tails, anti-repeat e fixes)
 
 - Date: 2026-10-25

@@ -48,13 +48,28 @@ public sealed class BridgeOptions
 
     /// <summary>
     /// Substitui o system do cliente pelo <see cref="MainHarness"/> no caminho
-    /// gerido (model sem sufixo de role). Quando aplica, as caudas sao dispensadas
-    /// (o nucleo corretivo mora no harness, uma vez so).
+    /// gerido. O gate e o CLIENTE (<see cref="OpencodeClient"/>), nunca o sufixo
+    /// do modelo; as caudas coexistem com a base.
     /// </summary>
     public bool MainHarness { get; set; }
 
-    /// <summary>Model id carrega sufixo de role: nao substitui o system do cliente.</summary>
+    /// <summary>
+    /// Model id carrega sufixo de role. Preservado para diagnostico/cadastro;
+    /// NAO bloqueia mais o main harness (o WAR usa &lt;modelo&gt;-build).
+    /// </summary>
     public bool HasProfile { get; set; }
+
+    /// <summary>
+    /// Cliente da requisicao e o CLI do opencode (User-Agent): ele traz o
+    /// proprio harness, entao base e tails ficam de fora no escopo "managed".
+    /// </summary>
+    public bool OpencodeClient { get; set; }
+
+    /// <summary>
+    /// Onde as caudas valem: "managed" (default; todos menos o CLI do opencode),
+    /// "all" (tambem no opencode) ou "off" (nenhuma).
+    /// </summary>
+    public string TailScope { get; set; } = "managed";
 
     /// <summary>
     /// Harness legado: strip de call narrada no historico + guardrail textual.
@@ -113,4 +128,19 @@ public sealed class BridgeOptions
 
     /// <summary>Calls minimas no historico antes de liberar {"final":...}; 0 = libera sempre.</summary>
     public int ToolShimMinCalls { get; set; }
+
+    /// <summary>
+    /// Copia as opcoes para o pedido corrente e marca o cliente pelo User-Agent.
+    /// O host e singleton; mutar a instancia compartilhada criaria corrida entre
+    /// requisicoes concorrentes.
+    /// </summary>
+    /// <param name="userAgent">User-Agent do pedido (pode ser nulo).</param>
+    /// <returns>Copia isolada com <see cref="OpencodeClient"/> resolvido.</returns>
+    public BridgeOptions ForClient(string? userAgent)
+    {
+        var copy = (BridgeOptions)MemberwiseClone();
+        copy.OpencodeClient = !string.IsNullOrWhiteSpace(userAgent)
+            && userAgent.Contains("opencode", StringComparison.OrdinalIgnoreCase);
+        return copy;
+    }
 }
