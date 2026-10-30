@@ -4,6 +4,7 @@
 **Status:** backlog priorizado (nada aqui está implementado além do que consta em "Estado atual").
 **Contexto:** complementa `Rochas.AI.Manager-Arquitetura v2.md` (§13) e a seção 32 do documento v1.
 > **Atualização 2026-10-20:** a fundação foi implementada (De/Até inclusivo, bandas, família de modelo, status por código, 400 para filtro inválido, MIME do PDF, menu e testes). R1–R30 continuam pendentes como backlog.
+> **Atualização 2026-10-30:** a §9 especifica o painel operacional nativo (`/Observation`), que substitui o Grafana/iframe na F2; o catálogo R1–R30 continua pendente.
 
 **Escopo:** facetas de relatório derivadas do modelo de domínio (FKs lógicas), recorte temporal De/Até, catálogo R1–R30, contrato técnico e plano de implementação.
 
@@ -263,7 +264,82 @@ Agendamento (export periódico), cache de definições, comparação entre perí
 
 ---
 
-## 9. Definição de pronto (para qualquer relatório)
+## 9. Painel operacional nativo (`/Observation`)
+
+### 9.1 Requisito
+
+Substituir o dashboard Grafana do OCB por uma pagina Razor autenticada no
+AI.Manager, com os mesmos 15 quadros, a mesma grade de 24 colunas e atualizacao
+a cada 5s. Proibido iframe, Grafana, datasource Infinity e bearer no browser;
+o acesso ao Bridge e server-side.
+
+### 9.2 Fontes e contrato
+
+| Fonte | Uso |
+|---|---|
+| `GET /api/metrics` | contadores e gauges (requests, falhas, modos, gates, arquivos, tps) |
+| `GET /api/status` | status da bridge e harness efetivo por caminho |
+| `GET /api/test/enunciado/messages` | mensagens do enunciado em execucao |
+| `GET /api/test/activity?limit=6` | ultimas respostas/atividade do agente |
+| `GET /api/test/probe/latest` | ultima amostra por step (`step`, `tools_calls`, `requests`) |
+| `GET /api/test/probe?limit=1000` | serie temporal (`ts`, `tps_output`, `tps_total`, `vram_used_mb`, `vram_total_mb`, `gpu_util`) |
+| `GET /api/test/steps` | steps concluidos (`step`, `tempo (s)`, `status`) |
+
+Configuracao server-side: `Bridge:BaseUrl` (default `http://127.0.0.1:4124`) e
+`Bridge:ApiKey` em secret/appsettings; nunca renderizar o valor no HTML. O
+Bridge de referencia usa bearer `guest@123`; a pagina nao deve conhece-lo.
+
+### 9.3 Layout exato dos 15 paineis
+
+| id | tipo | titulo | x | y | w | h |
+|---|---|---|---|---|---|---|
+| 1 | text | Fluxo principal | 0 | 0 | 24 | 3 |
+| 14 | table | Enunciado do teste em execucao | 0 | 3 | 12 | 8 |
+| 17 | table | Respostas do agente | 12 | 3 | 12 | 8 |
+| 2 | stat | Requests totais | 0 | 11 | 6 | 4 |
+| 4 | stat | Tokens/s saida | 6 | 11 | 6 | 4 |
+| 18 | stat | Arquivos gerados | 12 | 11 | 6 | 4 |
+| 3 | stat | Falhas | 18 | 11 | 6 | 4 |
+| 11 | bargauge | Requests por modo (acumulado) | 0 | 15 | 12 | 8 |
+| 5 | bargauge | Gates anti-repeat (conteudo/tools) | 12 | 15 | 12 | 8 |
+| 9 | barchart | Tools calls por step (todos os steps) | 0 | 23 | 24 | 6 |
+| 16 | table | Steps concluidos | 0 | 29 | 24 | 8 |
+| 7 | timeseries | Throughput por step (sonda 5s) | 0 | 37 | 12 | 8 |
+| 8 | timeseries | VRAM/GPU por step (sonda 5s) | 12 | 37 | 12 | 8 |
+| 6 | table | Status da bridge | 0 | 45 | 12 | 8 |
+| 12 | table | Harness efetivo por caminho | 12 | 45 | 12 | 8 |
+
+Detalhes de leitura: `requests`, `tps_output`, `files_generated`,
+`failed_requests`, `requests_opencode`, `requests_bridge`,
+`anti_repeat_content`, `anti_repeat_tools`; tabela de steps com cor por status
+(`PASS` verde, `FAIL`/`BLOCKED` vermelho, `SKIP` neutro, `STALE` laranja);
+timeseries com eixo direito para `t/s total`/`GPU %`; downsampling para ~240
+pontos e limite de 1000 amostras.
+
+### 9.4 Implementacao Razor/AJAX
+
+- Rota `/Observation` no menu lateral de `_Layout.cshtml`, protegida por cookie.
+- `ObservationController` + partials (`_Flow`, `_Enunciado`, `_Respostas`,
+  `_Stats`, `_Modes`, `_Gates`, `_ToolsByStep`, `_Steps`, `_Throughput`,
+  `_Vram`, `_Bridge`, `_Harness`), seguindo o padrao de `HarnessController`.
+- CSS grid de 24 colunas com `grid-column: x+1 / span w` e
+  `grid-row: y+1 / span h`; em mobile, empilhar na ordem dos IDs.
+- AJAX `fetch` a cada 5s, somente com a aba visivel; trocar apenas o innerHTML
+  dos partials, sem reload.
+- Graficos em CSS/SVG server-side; sem Chart.js/CDN.
+
+### 9.5 Estados, seguranca e testes
+
+- Falha/timeout do Bridge: manter o ultimo snapshot, marcar `degradado` e
+  exibir `atualizado as HH:mm:ss`; nao limpar a pagina.
+- Testes: contrato de campos por endpoint, render dos 12 partials, grid dos 15
+  quadros, autenticacao, varredura do HTML/JS por `guest@123`/API key e fallback.
+- Aceite: 15 quadros na posicao relativa do Grafana em desktop, leitura
+  empilhada em mobile, atualizacao 5s sem iframe e zero segredo no browser.
+
+---
+
+## 10. Definição de pronto (para qualquer relatório)
 
 - Definição registrada no catálogo, com título, base, facetas, eixos e métricas.
 - `from/to` aplicado no banco, com teste de borda.

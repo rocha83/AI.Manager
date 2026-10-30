@@ -54,33 +54,3 @@ public class BridgeOptionsFactoryTests
         Assert.Equal("tools-y", options.ToolsTail);
     }
 }
-
-public class BridgeOptionsSemanticScopeTests
-{
-    [Fact]
-    public void SondaSemanticaFicaDesligadaPorPadrao()
-    {
-        var options = new BridgeOptions();
-
-        Assert.False(options.AntiRepeatSemantic);
-        Assert.False(options.ForClient("opencode/1.0").AntiRepeatSemantic);
-        Assert.False(options.ForClient("dotnet-war/1.0").AntiRepeatSemantic);
-    }
-
-    [Fact]
-    public void SondaSemanticaPodeSerLigadaNoOpencode()
-    {
-        var options = new BridgeOptions { AntiRepeatSemanticForOpencode = true };
-
-        Assert.True(options.ForClient("opencode/1.0").AntiRepeatSemantic);
-        Assert.False(options.ForClient("dotnet-war/1.0").AntiRepeatSemantic);
-    }
-
-    [Fact]
-    public void FlagGlobalLigaSondaParaTodos()
-    {
-        var options = new BridgeOptions { AntiRepeatSemantic = true };
-
-        Assert.True(options.ForClient("dotnet-war/1.0").AntiRepeatSemantic);
-    }
-}

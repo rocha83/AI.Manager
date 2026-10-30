@@ -92,9 +92,8 @@ public abstract class ContentAntiRepeat
     }
 
     /// <summary>
-    /// Similaridade 0..1 entre blocos. Usa a distancia de Levenshtein do
-    /// <see cref="AntiRepeat"/>: loops com insercao/deslocamento (ex.: "proj-001"
-    /// -> "proj-999") nao casam na comparacao posicional do legado.
+    /// Similaridade 0..1 entre blocos pela razao posicional de caracteres
+    /// iguais, como no OCB classico.
     /// </summary>
     /// <param name="a">Bloco A.</param>
     /// <param name="b">Bloco B.</param>

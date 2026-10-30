@@ -6,8 +6,9 @@
 > A v1 foi publicada em `3b8b0bc` (AI.Manager) e espelhada em `2ea54fd` (OpenCodeBridge); esta v2 é a revisão de escopo pedida pelo autor.
 > C4 regenerado em v2 (draw.io + PNG) e espelhado no OpenCodeBridge junto com este documento.
 >
-> **Data:** 2026-10-25 (revisão v2)
-> **Escopo:** absorver o OpenCodeBridge no AI.Manager. Por ora `AI.Manager.Bridge` é um **projeto dentro da solução total**; depois da paridade e do cutover é extraído como componente exclusivo de transporte e controle de fluxo entre cliente e engine de modelos.
+> **Data:** 2026-10-30 (revisão v3; base v2 de 2026-10-25)
+> **Escopo:** absorver o OpenCodeBridge no AI.Manager. Por ora `AI.Manager.Bridge` é um **projeto dentro da solução total**; depois da paridade e do cutover é publicado como componente independente de transporte e controle de fluxo entre cliente e engine de modelos, no GitHub e no NuGet (padrão Rochas). O OpenCodeBridge não é descontinuado/arquivado: é o doador congelado dessa continuidade.
+> **Status em `b01ac19` (2026-10-29):** F1 de tools/endpoints e F2 de dados do TestBench já estão no HEAD; faltam `/api/test/*` + telemetria, painel nativo, executor de cenário, paridade do Runner e cutover. Esta revisão v3 registra o que já está entregue e o próximo corte.
 > **Dentro do escopo:** migração do motor de protocolo, do `TestCircuitDriver`/fluxo, do gate e dos enunciados hardcoded → dados do workflow do AI.Manager.
 > **Fora de escopo nesta fase:** execução remota; alteração do aceite WAR (Q4 `:4124` = gate, Q3 `:4125` = espelho pós-green).
 
@@ -15,16 +16,16 @@
 
 ## 1. Sumário executivo
 
-A direção correta é **absorver o OpenCodeBridge no AI.Manager**, não manter dois planos equivalentes. O `Rochas.OpenCodeBridge` é doador transitório; o destino é `AI.Manager.Bridge`, um projeto dentro da solução total que depois será extraído como componente exclusivo de transporte e controle de fluxo entre cliente e engine de modelos.
+A direção correta é **absorver o OpenCodeBridge no AI.Manager**, não manter dois planos equivalentes. O `Rochas.OpenCodeBridge` é doador congelado; o destino é `AI.Manager.Bridge`, um projeto dentro da solução total que depois será publicado como componente independente de transporte e controle de fluxo entre cliente e engine de modelos.
 
 - **AI.Manager = concentrador da solução.** Dono do experimento, do workflow, do enunciado, do manifesto, da aprovação, da evidência e da UI. O experimento de teste reusa o `Experiment` e o workflow existentes; não cria um `TestExperiment` paralelo.
 - **AI.Manager.Bridge = sucessor do OpenCodeBridge.** Projeto dentro do AI.Manager por enquanto; concentra host HTTP, tradução Responses ↔ chat, stream, tools, harness, breaker, perfis, permissões, shim, tool loop, telemetria e o controle de fluxo do circuito.
-- **OpenCodeBridge = fonte de migração.** O repo separado no Git permanece apenas até o cutover; seu `Program.cs` de ~245 KB, o `TestCircuitDriver`, a WAR e os testes hardcoded são portados em fatias, com paridade, e o repo é arquivado depois.
+- **OpenCodeBridge = fonte de migração.** O repo separado no Git permanece como doador congelado; seu `Program.cs` de ~245 KB, o `TestCircuitDriver`, a WAR e os testes hardcoded são portados em fatias, com paridade. A continuidade sai como `Rochas.AI.Manager.Bridge` no GitHub/NuGet; o projeto não morre nem vira runtime separado.
 - **Testes = dados do workflow.** Os cenários e enunciados que hoje são arrays/belts hardcoded viram `ExperimentPlan` + `CircuitStage` + `CircuitStep` + `TestScenario` no AI.Manager, editáveis por dados na UI existente.
 - **Contrato = manifesto imutável + resultado/evidência.** O AI.Manager monta o manifesto; o `AI.Manager.Bridge` valida, executa e devolve resultado. O executor não lê o banco do AI.Manager.
 - **Gate continua Q4 `:4124`; Q3 `:4125` é espelho pós-green.** A absorção não altera o aceite nem enfraquece a WAR.
 
-Em uma frase: **o AI.Manager manda no “o quê”, o AI.Manager.Bridge manda no “como” e no veredito, e o OpenCodeBridge deixa de existir como runtime separado.**
+Em uma frase: **o AI.Manager manda no “o quê”, o AI.Manager.Bridge manda no “como” e no veredito, e o OpenCodeBridge deixa de existir como runtime separado, continuando como o componente independente `Rochas.AI.Manager.Bridge`.**
 
 ---
 
@@ -73,13 +74,13 @@ Em uma frase: **o AI.Manager manda no “o quê”, o AI.Manager.Bridge manda no
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
-│ Rochas.OpenCodeBridge — doador transitório (Git separado)   │
+│ Rochas.OpenCodeBridge — doador congelado (Git separado)     │
 │  Program.cs ~245 KB, TestCircuitDriver, WAR, E2E, Web       │
-│  → portado em fatias para AI.Manager.Bridge → arquivado      │
+│  → portado para AI.Manager.Bridge → GitHub/NuGet            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-O `AI.Manager.Bridge` não é um segundo motor: é o motor definitivo. O repo OpenCodeBridge permanece separado no Git apenas durante a transição; depois do cutover ele é arquivado e deixa de ser runtime.
+O `AI.Manager.Bridge` não é um segundo motor: é o motor definitivo. O repo OpenCodeBridge permanece como doador congelado durante a transição; depois do cutover sua continuidade é publicada como componente independente (GitHub/NuGet) e deixa de ser runtime.
 
 ### 3.2 Fronteira do `AI.Manager.Bridge`
 
@@ -137,7 +138,7 @@ A absorção segue o padrão *strangler*:
 3. **Portar o host por fatias**: perfis/opções, harness/tails, breaker/permissões, coerção/shim, tool loop, telemetria, endpoints HTTP.
 4. **Rodar o novo host em porta alternativa** e comparar com o host antigo usando os mesmos manifestos/golden tests.
 5. **Cortar Q4** somente com paridade verde; Q3 depois do Q4. Rollback é o host antigo.
-6. **Arquivar o repo OpenCodeBridge** quando o novo host for o único runtime e os artefatos úteis tiverem sido migrados.
+6. **Publicar o componente independente** (`Rochas.AI.Manager.Bridge` no GitHub/NuGet) quando o novo host for o único runtime e os artefatos úteis tiverem sido migrados; o OCB fica congelado como referência, não descontinuado.
 
 Nenhuma fase pode afrouxar assertion, trocar instância do gate ou mudar `max_tokens`/ctx para obter PASS.
 
@@ -149,7 +150,7 @@ Nenhuma fase pode afrouxar assertion, trocar instância do gate ou mudar `max_to
 
 - **Pessoa:** autor/aprovador/operador gerencia experimentos, circuitos e execuções pela UI do AI.Manager.
 - **Sistema AI.Manager:** concentrador da solução; contém a UI, o workflow existente, o domínio de experimentos, o manifesto, a evidência e o `AI.Manager.Bridge`.
-- **Sistema legado OpenCodeBridge:** doador transitório. Não é um runtime alvo; o conteúdo é portado para `AI.Manager.Bridge` e o repo é arquivado após o cutover.
+- **Sistema legado OpenCodeBridge:** doador congelado. Não é um runtime alvo; o conteúdo é portado para `AI.Manager.Bridge`, cuja continuidade é publicada no GitHub/NuGet após o cutover.
 - **Sistema externo llama.cpp:** serve o modelo local em Q4 (`:4100`) ou Q3 (`:4110`).
 - **Sistema externo GitHub:** versiona os dois repositórios durante a transição; depois, apenas o AI.Manager.
 
@@ -163,7 +164,7 @@ Arquivos:
 - `docs/ai-manager/diagrams/ai-manager-next-steps-c4.drawio` — especificação editável para draw.io (v2, absorção).
 - `docs/ai-manager/diagrams/ai-manager-next-steps-c4.png` — export em alta definição (4002 × 2402, draw.io 32.6.1).
 
-> O diagrama mostra o `AI.Manager.Bridge` **dentro** do AI.Manager (Host/Protocol/Flow/Contracts/Client) e o `Rochas.OpenCodeBridge` como **doador/transitório**, em faixa própria, consumindo `Bridge.Client` apenas durante a transição. Q4 `:4124` (gate) e Q3 `:4125` (espelho pós-green) ficam fora do sistema, junto do llama.cpp.
+> O diagrama mostra o `AI.Manager.Bridge` **dentro** do AI.Manager (Host/Protocol/Flow/Contracts/Client) e o `Rochas.OpenCodeBridge` como **doador congelado**, em faixa própria, consumindo `Bridge.Client` apenas durante a transição. Q4 `:4124` (gate) e Q3 `:4125` (espelho pós-green) ficam fora do sistema, junto do llama.cpp.
 
 ### 4.3 Contêineres e responsabilidades
 
@@ -181,7 +182,7 @@ Arquivos:
 | Q4 `:4124` | Instância estável; único gate válido |
 | Q3 `:4125` | Espelho um pouco menos capaz; roda depois do Q4 verde; nunca é gate |
 | llama.cpp `:4100`/`:4110` | Inferência local |
-| Legacy OpenCodeBridge | Doador: `Program.cs`, `TestCircuitDriver`, WAR/E2E hardcoded, Web e scripts; congelado e arquivado após cutover |
+| Legacy OpenCodeBridge | Doador: `Program.cs`, `TestCircuitDriver`, WAR/E2E hardcoded, Web e scripts; congelado, sem descontinuação |
 | Artifacts/Evidence | Logs, `summary.tsv`, `events.jsonl`, capturas, hashes; produzidos pelo Bridge e referenciados pelo AI.Manager |
 
 ### 4.4 Relacionamentos principais
@@ -717,6 +718,8 @@ A UI deve ser o painel de direção, não um editor de código.
 
 **Aceite:** baseline L1/L2/L3 documentado; seed reproduzível; nenhuma mudança de comportamento; repo doador marcado como congelado.
 
+**Estado em `b01ac19`:** concluída (seed `war-baseline.json`, `sourceCommit` e hash).
+
 ### Fase 1 — Desacoplar e ampliar o `AI.Manager.Bridge`
 
 - criar `Bridge.Contracts` e remover a dependência de `Bridge` com `Application`/`Domain`;
@@ -725,6 +728,8 @@ A UI deve ser o painel de direção, não um editor de código.
 - testes de conformidade do Bridge atual.
 
 **Aceite:** solution AI.Manager build 0/0; testes atuais do Bridge verdes; nenhum projeto do AI.Manager referencia `Rochas.OpenCodeBridge.*`; `Bridge` não referencia `Application`/`Domain`.
+
+**Estado em `b01ac19`:** concluída (`Bridge.Contracts`/`Client`/`Hosting`/`Api`/`Runner`, tools e harness no Bridge).
 
 ### Fase 2 — Portar o host por fatias com paridade
 
@@ -735,6 +740,8 @@ A UI deve ser o painel de direção, não um editor de código.
 
 **Aceite:** host novo responde `/api/status` e `/v1/*` com o mesmo contrato; paridade de respostas/stream/tools nos fixtures; nenhum corte de Q4 ainda.
 
+**Estado em `b01ac19`:** parcial. `Bridge.Api` já expõe tools, harness, métricas, permissão, translate/sanitize/convert/config e `/v1/models`; faltam `/api/test/*`, ring de telemetria e a mesma superfície no `Bridge.Runner`.
+
 ### Fase 3 — Reusar `Experiment` + workflow e versionar o circuito
 
 - estender `Experiment` (`Kind`, `Statement`, `WorkflowCardId`) e usar `TrainingWorkflowCard` existente;
@@ -743,6 +750,8 @@ A UI deve ser o painel de direção, não um editor de código.
 - API/UI de catálogo, workflow, circuito e versão; ainda sem executar em produção.
 
 **Aceite:** criar/clonar/aprovar um experimento de teste; manifesto exportado idêntico ao fixture do host; reexecutar o seeder não duplica versão nem sobrescreve aprovada; nenhum `TestExperiment` paralelo.
+
+**Estado em `b01ac19`:** parcial. Domínio, schema, `BridgeBaseline`/`Codec`, `WarBaselineReader`, `TestBenchSeeder` e `ManifestBuilder` prontos; faltam UI e executor.
 
 ### Fase 4 — Execução offline e cutover do L1 no Q4
 
@@ -763,16 +772,16 @@ A UI deve ser o painel de direção, não um editor de código.
 
 **Aceite:** Q3 não altera o gate; divergência gera item de workflow; Q4 continua sendo o único critério de aprovação.
 
-### Fase 6 — Migrar L2/L3 e arquivar o OpenCodeBridge
+### Fase 6 — Migrar L2/L3 e publicar o componente independente
 
 - flag `executor=bridge` vs `executor=legacy`;
 - shadow runs e 3 gates verdes consecutivos no Q4 por nível;
 - espelho Q3 acompanhando o green do Q4;
 - remover arrays de belts hardcoded e o `WarTemplate` do runtime;
 - atualizar docs, scripts e units para o host do `AI.Manager.Bridge`;
-- arquivar o repo OpenCodeBridge (histórico preservado) e remover a dependência de seus projetos.
+- publicar `Rochas.AI.Manager.Bridge` no GitHub/NuGet (histórico do OCB preservado) e remover a dependência de seus projetos.
 
-**Aceite:** WAR continua com o mesmo aceite; Q4 é o único gate; nenhum PASS obtido por afrouxamento; o OpenCodeBridge não é mais necessário para rodar Q4/Q3.
+**Aceite:** WAR continua com o mesmo aceite; Q4 é o único gate; nenhum PASS obtido por afrouxamento; o OpenCodeBridge não é mais necessário para rodar Q4/Q3; o pacote independente está publicado e instalável.
 
 ---
 
@@ -801,7 +810,7 @@ Como a UI passa a direcionar execução, ela vira um plano de controle sensível
 | UI virar shell remoto | allowlist, aprovação, assinatura, workspace guard |
 | Big-bang na extração do host | strangler por fatias, porta alternativa, paridade e rollback |
 | `Bridge` voltar a depender de `Application`/`Domain` | contratos próprios; regra de dependência no build |
-| Duas fontes de verdade durante a transição | `AI.Manager.Bridge` é o destino; OpenCodeBridge congelado e sem feature nova |
+| Duas fontes de verdade durante a transição | `AI.Manager.Bridge` é o destino; OpenCodeBridge congelado, sem feature nova e sem descontinuação |
 | Acoplamento de releases | `Bridge.Contracts` versionado + host standalone após extração |
 | Testes longos/flaky | pause/resume, retry policy, artefatos, sem auto-PASS |
 | SQLite lock | executor nunca lê DB; API only; WAL/índices |
@@ -809,7 +818,7 @@ Como a UI passa a direcionar execução, ela vira um plano de controle sensível
 | Complexidade de migrar belts multi-role | começar por build belts; manter orch como code-backed |
 | Q3 divergir por capacidade menor | espelho pós-green, classificação e workflow; nunca gate |
 | “Green” manual virar aceite | observação manual só como diagnóstico; aceite é Q4 automatizado + evidência |
-| Perda de conhecimento ao arquivar o OCB | mapa de doadores, testes de paridade e histórico preservado |
+| Perda de conhecimento na transição | mapa de doadores, testes de paridade, histórico preservado e pacote independente publicado |
 | Divergência entre clone local e remoto (docs v1 × v2) | v2 é a fonte; espelho atualizado no mesmo commit; HEADs registrados |
 | Token/credencial exposta em chat | revogar, rotacionar e nunca gravar em arquivo/histórico |
 | WAR L3 ainda pendente (marrom/preta) | retomar depois do lift do ambiente; não confundir com a fusão |
@@ -820,7 +829,7 @@ Como a UI passa a direcionar execução, ela vira um plano de controle sensível
 
 ## 13. Critérios de aceite da evolução
 
-1. Build da solution AI.Manager em Release com 0 warnings/0 erros; build do doador OCB preservado até o arquivamento.
+1. Build da solution AI.Manager em Release com 0 warnings/0 erros; build do doador OCB preservado como referência congelada.
 2. `AI.Manager.Bridge` desacoplado: sem referência a `Application`/`Domain`; `Bridge.Contracts` compartilhado.
 3. Paridade de manifesto vs `WarTemplate` para L1/L2/L3 (comandos, args, env, timeout, parser e gate).
 4. L1/L2/L3 no Q4 com o mesmo resultado do legado antes de virar a chave.
@@ -831,7 +840,7 @@ Como a UI passa a direcionar execução, ela vira um plano de controle sensível
 9. Run com evidência completa: experimento, plano, manifesto, executor, modelo, harness, gate, steps, artefatos e hashes.
 10. UI permite criar, validar, aprovar, executar, pausar/retomar, cancelar, comparar, rodar espelho e aceitar/rejeitar.
 11. Nenhum PASS obtido por afrouxamento de assertiva, troca de instância ou mudança de `max_tokens`/ctx.
-12. OpenCodeBridge arquivável: nenhum projeto do AI.Manager referencia `Rochas.OpenCodeBridge.*`; Q4/Q3 rodam pelo `AI.Manager.Bridge.Host`.
+12. Continuidade publicada: nenhum projeto do AI.Manager referencia `Rochas.OpenCodeBridge.*`; Q4/Q3 rodam pelo `AI.Manager.Bridge.Host`; `Rochas.AI.Manager.Bridge` está no GitHub/NuGet.
 
 ---
 
@@ -848,13 +857,13 @@ Fechadas nesta revisão:
 
 Ainda em aberto:
 
-1. **Cutover:** exigir 3 gates Q4 verdes por nível antes de arquivar o OpenCodeBridge (recomendado) ou um único gate + shadow run?
+1. **Cutover:** exigir 3 gates Q4 verdes por nível antes de publicar o componente independente (recomendado) ou um único gate + shadow run?
 2. **Escopo inicial:** L1 + belts build (recomendado) ou tentar L3 de imediato?
-3. **Local do documento:** este arquivo é a fonte canônica; o OpenCodeBridge mantém cópia sincronizada em `docs/ai-manager/AI-MANAGER-NEXT-STEPS.md` até o arquivamento.
+3. **Local do documento:** este arquivo é a fonte canônica; o OpenCodeBridge mantém cópia sincronizada em `docs/ai-manager/AI-MANAGER-NEXT-STEPS.md` enquanto durar a transição.
 
 Decidido nesta revisão:
 
-- **`AI.Manager.Bridge` é o sucessor do OpenCodeBridge.** Não é um duplicado a remover; o OpenCodeBridge é doador transitório.
+- **`AI.Manager.Bridge` é o sucessor do OpenCodeBridge.** Não é um duplicado a remover; o OpenCodeBridge é doador congelado.
 - **Reusar `Experiment` + `TrainingWorkflowCard`.** Não criar `TestExperiment` paralelo.
 - **Testes são dados do workflow.** Arrays/belts hardcoded viram `ExperimentPlan`/`TestScenario`; o `TestCircuitDriver` vira kernel de fluxo do Bridge.
 - **Q4 é o gate; Q3 é espelho pós-green.** O Q3 não inicia antes do Q4 verde e não altera a aceitação.
@@ -887,16 +896,14 @@ Decidido nesta revisão:
 
 ## 16. Próximo passo recomendado
 
-Implementar a **fatia vertical 1** dentro do AI.Manager:
+O próximo corte parte do que já está no HEAD (`b01ac19`):
 
-1. Criar `Bridge.Contracts` e desacoplar `AI.Manager.Bridge` de `Application`/`Domain`.
-2. Mover tradução, stream, anti-repeat e harness tails para o Bridge, com testes de conformidade.
-3. Criar o esqueleto de `Bridge.Host` e rodar em porta alternativa com `/api/status`.
-4. Reusar `Experiment` + `TrainingWorkflowCard`; adicionar `ExperimentPlan` e o seed `war-baseline.json`.
-5. UI read-only do catálogo/workflow/circuito, sem executar produção.
-6. Só depois: porta do host real, paridade L1, execução offline no Q4 e espelho Q3.
+1. **F1 residual:** expor `/api/test/enunciado`, `/api/test/enunciado/messages`, `/api/test/activity`, `/api/test/probe`, `/api/test/probe/latest`, `/api/test/step`, `/api/test/steps`; criar o ring de telemetria e compartilhar os endpoints no `Bridge.Runner`.
+2. **F2 — painel nativo:** implementar `/Observation` com os 15 quadros da §9 do `REPORT-PENDINGS.md`, partials Razor, AJAX 5s, CSS/SVG e cliente server-side com `Bridge:BaseUrl`/`Bridge:ApiKey`.
+3. **F3 — executor:** ligar `BridgeScenario` → modelo → tools → assertions, gravar `test_runs`/`test_evidence` e rodar o L1 no Q4 com evidência.
+4. **F4 — fechamento:** L2/L3, espelho Q3 pós-green, três gates Q4 consecutivos e publicação do `Rochas.AI.Manager.Bridge` no GitHub/NuGet.
 
-Essa fatia começa a absorção sem tocar no gate. O corte do Q4 só acontece com paridade verde e três execuções Q4 consecutivas verdes; o Q3 acompanha na sequência como espelho. O repo OpenCodeBridge só é arquivado quando o host novo for o único runtime.
+Nenhum corte de Q4 acontece neste host sem GPU: o aceite local é build + testes + seed. O Q3 continua espelho pós-green e nunca gate; o componente independente só é publicado quando o host novo for o único runtime.
 
 ---
 
@@ -1116,7 +1123,7 @@ test_evidence(run_id, kind)
 6. Editor de cenário/assertions + validação.
 7. Run offline + ingestão de resultado.
 8. `MirrorRun`/`MirrorDivergence` + workflow.
-9. Cutover do runner para o `Bridge.Host` do `AI.Manager.Bridge` (o projeto **não** é removido; ele vira o motor definitivo) e arquivamento do OpenCodeBridge.
+9. Cutover do runner para o `Bridge.Host` do `AI.Manager.Bridge` (o projeto **não** é removido; ele vira o motor definitivo) e publicação do componente independente no GitHub/NuGet.
 
 ### A.7 O que não fazer
 

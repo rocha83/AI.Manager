@@ -65,7 +65,7 @@ A **rev. 2.2** acrescenta o eixo que faltava: **indução**. Entre 2026-10-26 e 
 
 - Uma máquina de desenvolvimento com duas bridges locais (`:4124` GPU, `:4125` CPU) e servidores llama em `:4100`/`:4110`.
 - `:4124` (Q4) é o **gate**; `:4125` (Q3) é **espelho pós-green**, nunca critério de aceite.
-- O `Rochas.OpenCodeBridge` é **doador transitório**: recebe features até o cutover e depois é arquivado.
+- O `Rochas.OpenCodeBridge` é **doador congelado**: não recebe features novas; seu conteúdo é incorporado e a continuidade é publicada como `Rochas.AI.Manager.Bridge` no GitHub/NuGet.
 - SQLite é suficiente para o volume atual (centenas a milhares de registros por tabela).
 - O usuário final é técnico; "modo básico" continua sendo o caminho recomendado.
 
@@ -431,9 +431,9 @@ Projetos `net10.0` e dependências reais:
 | `Rochas.AI.Manager.Bridge.Api` | host REST+Swagger | `Bridge`, `Contracts`, `Hosting` |
 | `Rochas.AI.Manager.Bridge.Runner` | host CLI `serve`/`manifest` (HttpListener) | `Bridge`, `Contracts`, `Hosting` |
 
-**Endpoints (Api e Runner):** `GET /api/status`, `GET /health`, `GET /api/contract`, `GET /api/contract/schema`, `POST /api/manifest/validate`, `POST /api/manifest/dry-run`, `POST /v1/responses`, `POST /v1/chat/completions`.
+**Endpoints (Api):** `GET /api/status`, `GET /health`, `GET /api/contract`, `GET /api/contract/schema`, `POST /api/manifest/validate`, `POST /api/manifest/dry-run`, `GET /api/tools`, `POST /api/tools/execute`, `GET /api/harness`, `GET /api/metrics`, `POST /api/permission/check`, `POST /api/translate`, `POST /api/sanitize`, `POST /api/convert`, `GET /api/config`, `GET /v1/models`, `POST /v1/responses`, `POST /v1/chat/completions`. **Runner:** hoje cobre `status`/`health`/`contract`/`manifest` e `/v1/*`; a paridade dos endpoints de tools/métricas está pendente na F1.
 
-**Pipeline:** `ResponsesToChat.Convert` → estratégia de tools → anti-repeat (conteúdo/args, Levenshtein + assinatura canônica) → breaker soft/hard → upstream OpenAI-compatible → `ChatToResponses`; stream SSE no mesmo contrato. `BridgeOptions.ForClient(User-Agent)` isola a decisão por requisição (o host é singleton e não muta a instância compartilhada).
+**Pipeline:** `ResponsesToChat.Convert` → estratégia de tools → anti-repeat (conteúdo/args, similaridade posicional + assinatura canônica) → breaker soft/hard → upstream OpenAI-compatible → `ChatToResponses`; stream SSE no mesmo contrato. `BridgeOptions.ForClient(User-Agent)` isola a decisão por requisição (o host é singleton e não muta a instância compartilhada).
 
 **Harness:** `MainHarness` (base) + `HarnessTails` (delta), com `TailScope` e discriminador por cliente (§9.5). O core é testável sem ASP.NET; `Bridge.Api` e `Runner` são cascas.
 
@@ -441,7 +441,7 @@ Projetos `net10.0` e dependências reais:
 
 - Hoje o AI.Manager ainda usa o `ProxyController` legado; `Bridge.Api`/`Runner` são hosts standalone e `Bridge.Client` já fala o contrato novo.
 - Próximo corte: consumir `Bridge.Client` no `AI.Manager.Api` (in-process ou HTTP) e desligar o proxy legado por flag.
-- O `OpenCodeBridge` permanece doador congelado; features novas entram no `AI.Manager.Bridge`. O arquivamento exige paridade + 3 gates Q4 verdes.
+- O `OpenCodeBridge` permanece doador congelado; features novas entram no `AI.Manager.Bridge`. A publicação do componente independente exige paridade + 3 gates Q4 verdes.
 - **Q4 `:4124` é o gate**; **Q3 `:4125` é espelho pós-green** e nunca substitui o gate.
 
 ### 10.4 Invariantes da v2
@@ -646,7 +646,7 @@ Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende d
 - **ADR-10 — Worker:** `BackgroundService` no host na Fase 2; projeto dedicado só com múltiplos hosts.
 - **ADR-11 — Contratos de domínio:** `IRepository`/`IUnitOfWork` implementados ou removidos (sem código morto).
 - **ADR-12 — Schema:** scripts versionados + `schema_version`; proibido `ALTER TABLE` em `try/catch`.
-- **ADR-13 — Bridge extraível:** núcleo `Rochas.AI.Manager.Bridge` sem ASP.NET/CLI/Swagger; `Api`/`Runner` são hosts; `Contracts`/`Client`/`Hosting` completam o pacote. OpenCodeBridge é doador transitório; Q4 é gate e Q3 é espelho.
+- **ADR-13 — Bridge extraível:** núcleo `Rochas.AI.Manager.Bridge` sem ASP.NET/CLI/Swagger; `Api`/`Runner` são hosts; `Contracts`/`Client`/`Hosting` completam o pacote. OpenCodeBridge é doador congelado; a continuidade é publicada como `Rochas.AI.Manager.Bridge`; Q4 é gate e Q3 é espelho.
 - **ADR-14 — Harness no Bridge:** `MainHarness` base + `HarnessTails` coexistentes; gate por cliente (`User-Agent`), nunca por sufixo de modelo; `TailScope` managed/all/off; `ForClient` isola a decisão por requisição.
 - **ADR-15 — Indução é corpus medido:** toda dica/aviso/enunciado nasce de sintoma medido (log, `calls=`, probe de compilação) e obedece "a dica ensina a forma CERTA e nunca exibe a errada". Dica sem `probe=ok` não é servida.
 - **ADR-16 — Breaker enxerga falha de tool:** `FailureMarkers` cobre `exit [1-9]`, `error fs/cs/msb/fsi\d+`, traceback e `undefined reference`; a contagem é por **alvo mais frequente na janela** (sucesso intercalado não zera), com nudge em até 2 alvos (soft 3 / hard 6). Consumidor de `/api/tools/execute` chama o mesmo controle — não cria escalada paralela.

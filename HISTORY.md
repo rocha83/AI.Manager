@@ -1,3 +1,27 @@
+## fix(bridge): sincroniza b01ac19, remove anti-repeat semântico e atualiza docs de fusão
+
+- Date: 2026-10-30
+
+- Base reconciliada com `origin/main b01ac19` (F1 tools/endpoints, permissão,
+  status F1/F2 e arquitetura 2.2/PDFs). O stash local foi reaplicado de forma
+  seletiva; tools, TestBench e endpoints já presentes no HEAD não foram
+  sobrescritos.
+- Anti-repeat semântico/Levenshtein removido do código e dos testes:
+  `AntiRepeatSemantic`, `AntiRepeatSemanticForOpencode`,
+  `ResponsesStream.RepeatSemantic`/`lastSemanticProbe`,
+  `AntiRepeat.SemanticDuplicateAt` e a similaridade por edição. Fica apenas a
+  regra posicional clássica do OCB (`AntiRepeat.BlockSimilarity`).
+- `MainHarness`/`HarnessTails` sincronizados com o OCB: workspace atual, data
+  do host, `SYSTEM DO ROLE` e tails finais.
+- Docs de fusão atualizados: `ROADMAP-FIM-MIGRACAO-Q4.md` com 4 fases e estado
+  em `b01ac19`; `AI-MANAGER-NEXT-STEPS.md` v3 com o próximo corte; ciclo de
+  vida do OCB como doador congelado/continuidade GitHub-NuGet; anti-repeat
+  clássico no `BRIDGE-TRANSPORT.md`; painel `/Observation` na §9 do
+  `REPORT-PENDINGS.md`; nota de nomenclatura em `F1-F2-STATUS.md`.
+- **Prova:** `dotnet build Rochas.AI.Manager.slnx -c Release` = 0 erros / 113
+  warnings conhecidos; `Bridge.Tests` = 136 PASS; `AI.Manager.Tests` = 105
+  PASS + 1 SKIP. Sem GPU, Q4/Q3 não foram executados.
+
 ## feat(anti-repeat): sonda semantica no opencode cobre content e thinking
 
 - Date: 2026-10-26

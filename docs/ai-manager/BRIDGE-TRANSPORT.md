@@ -102,15 +102,19 @@ guardrail so entra com `--legacy-harness`.
 O controle tem tres escopos:
 
 1. **conteudo** (`ContentAntiRepeat` / `AntiRepeatReply`): cauda verbatim ou
-   tres blocos finais similares. A similaridade usa Levenshtein
-   (`AntiRepeat.BlockSimilarity`), nao comparacao posicional — loops com
-   insercao/deslocamento tambem casam.
+   tres blocos finais similares. A similaridade usa a razao **posicional** de
+   caracteres iguais (`AntiRepeat.BlockSimilarity`), como no OCB classico;
+   semantica/Levenshtein nao fazem parte do componente.
 2. **stream** (`StreamAntiRepeatReply`): mesma regra sobre `thinking` e
    `content`; `ResponsesStreamTranslator.CheckRepeat` marca `RepeatTripped`,
-   `RepeatWhere` e `RepeatAt` e o `BridgeProxy` corta o upstream.
+   `RepeatWhere`, `RepeatAt` e `RepeatContext` e o `BridgeProxy` corta o
+   upstream.
 3. **tool-args** (`ToolArgsAntiRepeatReply`): a partir de 1024 chars de
    argumentos, detecta o mesmo loop e descarta a call parcial; o turno fecha
    com o aviso.
+
+`AntiRepeatSemantic`, `AntiRepeatSemanticForOpencode`, `RepeatSemantic` e
+`SemanticDuplicateAt` foram removidos; os testes semânticos saíram junto.
 
 O **breaker** (`ToolsBreaker`) le o historico `assistant.tool_calls` +
 `role=tool`:

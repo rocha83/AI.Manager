@@ -1,4 +1,6 @@
-# F1 e F2 — status da implementação (2026-10-26)
+# F1 e F2 — status da implementação (2026-10-26; atualizado em 2026-10-30)
+
+> **Nota de nomenclatura (2026-10-30):** este documento mantém os rótulos do corte `b01ac19`; no `ROADMAP-FIM-MIGRACAO-Q4.md`, **F2** passou a nomear o painel nativo e a entrega de dados descrita aqui é pré-requisito da **F3**.
 
 **Escopo deste corte:** F1 (paridade de artefatos do host) e F2 (enunciados como
 dados) do `PLANO-APROXIMACAO-URGENTE.md` / `ROADMAP-FIM-MIGRACAO-Q4.md`,
@@ -7,9 +9,11 @@ pronto, o que ficou fora e as decisões que precisam ser tomadas antes de seguir
 
 **Verificação (executada nesta máquina):**
 
+> Atualização 2026-10-30: o anti-repeat semântico/Levenshtein saiu do código e dos testes; a contagem do Bridge passou a refletir apenas a suíte clássica.
+
 ```bash
 dotnet build Rochas.AI.Manager.slnx -c Release
-dotnet test tests/Rochas.AI.Manager.Bridge.Tests -c Release   # 131 passed
+dotnet test tests/Rochas.AI.Manager.Bridge.Tests -c Release   # 136 passed
 dotnet test tests/Rochas.AI.Manager.Tests -c Release           # 105 passed, 1 skip
 ```
 
@@ -69,7 +73,7 @@ adicionais (34 no total).
   não monta os endpoints de tools. Decisão necessária: (a) extrair um
   `MapBridgeEndpoints(...)` compartilhado em `Bridge.Hosting` e usar nos dois
   hosts, ou (b) aposentar o `serve` do Runner e manter só o `Bridge.Api`.
-- **ONNX/embeddings**: explicitamente opcional no roadmap; não iniciado.
+- **ONNX/embeddings**: fora de escopo no roadmap atual; não iniciado.
 - `POST /api/config` de escrita e hot-reload: só leitura hoje.
 
 ---

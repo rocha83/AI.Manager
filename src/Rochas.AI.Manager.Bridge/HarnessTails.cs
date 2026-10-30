@@ -22,14 +22,15 @@ public static class HarnessTails
         "PRIORIDADE: se o master mandar explicar antes de comando nao trivial, execute primeiro e mostre a saida; a explicacao, se necessaria, vem depois, em 1 linha.";
 
     public const string DefaultTools =
-        "MODO DE USO DAS TOOLS (complemento ao harness; NAO repete regra de comportamento): " +
-        "SHELL: um comando por chamada; nunca quebre linha com escape literal; para script, write + `bash <arquivo>`; `cd` NAO persiste entre chamadas — use `cd <dir> && <cmd>` na mesma call. " +
-        "GLOB: nao tem alternancia nem regex — use `**/*.{cs,js,ts,json}` ou chame glob duas vezes. " +
-        "`mkdir X && cd Y` so vale com X e Y identicos. " +
-        "GIT: `git init <dir>` SEMPRE com o diretorio explicito (nunca no cwd do workspace); o repo nasce na pasta do projeto do enunciado; confirme com `git -C <dir> rev-parse --show-toplevel`; identidade so local (`git -C <dir> config user.email/user.name`) — `--global` proibido; se vier 'unknown option'/'usage:', leia a sintaxe e nao repita a chamada. " +
-        "DOTNET: com mais de um projeto na pasta, `--project <pasta>` e ambiguo ('contains more than one project file'): aponte o ARQUIVO (`<dir>/<nome>.fsproj` ou `.csproj`). " +
+        "MODO DE USO DAS TOOLS (regras transversais; o contrato de cada tool vai no schema): " +
+        "Prefira a tool dedicada: read/write/edit para arquivo, glob/grep para descobrir, webfetch/websearch para rede, shell para executar. " +
+        "Um passo = uma acao; argumentos JSON completos; leia o resultado antes de repetir. " +
+        "Independentes no mesmo turno; dependentes esperam. Nao repita a mesma chamada/caminho; em loop, mude a abordagem. " +
+        "`execute` nao e sandbox: a bridge desembrulha tools.X; bloqueio de role nao se contorna por shell. " +
+        "DOTNET: com mais de um projeto na pasta, `--project <pasta>` e ambiguo: aponte o ARQUIVO (`<dir>/<nome>.fsproj` ou `.csproj`). " +
         "F#: o entrypoint e `module Program` em Program.fs; o assembly e o nome do .fsproj. " +
-        "PROJETO EXISTENTE: edite os arquivos do projeto; `dotnet new` so em pasta vazia (criar segundo .csproj/.fsproj na mesma pasta quebra `dotnet run --project <pasta>`: 'contem mais de um arquivo de projeto').";
+        "PROJETO EXISTENTE: edite os arquivos do projeto; `dotnet new` so em pasta vazia (segundo .csproj/.fsproj na mesma pasta quebra `dotnet run --project <pasta>`). " +
+        "SUBAGENTE: o schema de cada tool viaja no array `tools` do request; preserve o array e o system do role ao delegar; nao troque schema por prosa.";
 
     /// <summary>Alias de compatibilidade: cauda de comportamento canonica.</summary>
     public static string Behavior => DefaultBehavior;
@@ -50,6 +51,11 @@ public static class HarnessTails
     {
         if (!harness) return system ?? "";
         string t = (system ?? "").Trim();
+        // Data do host no proprio harness: modelos pequenos inventam data de
+        // memoria; o pedido "hoje" passa a ter uma fonte verdadeira no contexto.
+        string hoje = "DATA ATUAL DO HOST: " + System.DateTime.Now.ToString("yyyy-MM-dd") +
+                      " (use esta data quando o pedido citar hoje).";
+        t = (t.Length > 0 ? t + "\n\n" : "") + hoje;
         if (!string.IsNullOrWhiteSpace(behavior)) t = (t.Length > 0 ? t + "\n\n" : "") + behavior;
         if (!string.IsNullOrWhiteSpace(tools)) t = (t.Length > 0 ? t + "\n\n" : "") + tools;
         return t;

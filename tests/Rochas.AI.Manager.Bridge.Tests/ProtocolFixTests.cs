@@ -312,7 +312,8 @@ public class ProtocolFixTests
     {
         string text = HarnessTails.Compose("sys", true, "B", "T");
 
-        Assert.Equal("sys\n\nB\n\nT", text);
+        Assert.StartsWith("sys\n\nDATA ATUAL DO HOST: ", text);
+        Assert.EndsWith("\n\nB\n\nT", text);
         Assert.Equal("sys", HarnessTails.Compose("sys", false, "B", "T"));
     }
 
