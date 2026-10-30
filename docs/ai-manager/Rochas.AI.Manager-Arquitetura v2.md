@@ -1,9 +1,10 @@
-# Rochas.AI.Manager — Arquitetura v2.1
+# Rochas.AI.Manager — Arquitetura v2.2
 
-**Data:** 2026-10-20 (rev. 2.1 em 2026-10-25)
-**Status:** vigente — a rev. 2.1 registra o porte do `AI.Manager.Bridge` (núcleo, contratos, client, hosting, Api e Runner), o harness base+tails e o discriminador por cliente. Substitui a organização do v1; o v1.2 permanece como histórico de intenção e as-built na seção 32.
-**Escopo:** arquitetura da plataforma `OpenCodeBridge/AI.Manager` — domínio, aplicação, persistência, harness, `AI.Manager.Bridge`/proxy, workflow de aprovação, treinamento, relatórios, segurança, testes e roadmap.
-**Documentos relacionados:** `Rochas.AI.Manager-Arquitetura v1.md` (§32 as-built), `REPORT-PENDINGS.md` (catálogo de relatórios), `AI.Manager/docs/ai-manager/ARQUITETURA-CAMADAS.md`, `GUIA-INICIANTE.md`, `GUIA-TUNING-EQUIPE-TECNICA.md`.
+**Data:** 2026-10-20 (rev. 2.1 em 2026-10-25; rev. 2.2 em 2026-10-29)
+**Status:** vigente — a rev. 2.2 absorve a evolução de indução do `OpenCodeBridge` (2026-10-26 → 2026-10-29, 127 commits), fixa a matriz de paridade `OCB Core → AI.Manager.Bridge` e decide que **toda dinâmica corretiva de harness/tails/enunciados entra como dado no fluxo do AI.Manager** (§9.7). Substitui a organização do v1; o v1.2 permanece como histórico de intenção e as-built na seção 32.
+**Escopo:** arquitetura da plataforma `OpenCodeBridge/AI.Manager` — domínio, aplicação, persistência, harness e indução, `AI.Manager.Bridge`/proxy, TestBench, workflow de aprovação, treinamento, relatórios, segurança, testes e roadmap.
+**Documentos relacionados:** `Rochas.AI.Manager-Arquitetura v1.md` (§32 as-built), `REPORT-PENDINGS.md` (catálogo de relatórios), `BRIDGE-TRANSPORT.md` (transporte), `GUIA-INICIANTE.md` (rev. 2.2), `F1-F2-STATUS.md`, `ROADMAP-FIM-MIGRACAO-Q4.md`, `GUIA-TUNING-EQUIPE-TECNICA.md`.
+**PDF:** `docs/ai-manager/pdf/Rochas.AI.Manager-Arquitetura v2.pdf` (gerado a partir deste `.md`).
 
 ---
 
@@ -21,6 +22,8 @@ A v2 consolida o que existe e corrige três distorções entre intenção e cód
 
 A regra editorial permanece a do v1 (§28.1/§28.14): capacidade só é "concluída" com código, teste e evidência.
 
+A **rev. 2.2** acrescenta o eixo que faltava: **indução**. Entre 2026-10-26 e 2026-10-29 o `OpenCodeBridge` recebeu 127 commits quase todos sobre "por que o modelo pequeno não obedece" — dica que ensina forma inválida, breaker cego a erro de compilador, path relativo confundido com `cd`, args truncados, enunciado que dita mecânica. A v2.2 registra esse panorama (§9.6), fixa a matriz de paridade entre o Core do OCB e o `AI.Manager.Bridge` (§10.5) e decide que **os textos e enunciados de indução são dados versionados** (§9.7), semeados a partir do doador com hash de procedência. Estado medido em 2026-10-29: build 0 erros / 113 avisos; `Bridge.Tests` 144 PASS; `AI.Manager.Tests` 105 PASS + 1 SKIP; AI.Manager em `537fec1`, OCB em `3d8bd58`.
+
 ---
 
 ## 2. O que mudou da v1 para a v2
@@ -31,6 +34,7 @@ A regra editorial permanece a do v1 (§28.1/§28.14): capacidade só é "conclu�
 | UoW/Repositórios | `IRepository`/`IUnitOfWork` no Domain | Contratos do pacote `Rochas.DapperRepository` como baseline; contratos próprios removidos ou implementados (ADR-11) |
 | Treinamento | TorchSharp multi-modelo desde o início | MLP é baseline rotulado; TorchSharp só após prova (ADR-06); Python vira adaptador externo opcional (ADR-07) |
 | Harness | Seção 31 como requisito | Modelado e semeado; `MainHarness` base + `HarnessTails` no Bridge, gate por cliente; falta Test Bench e vínculo de evidência (ADR-03/ADR-14) |
+| Indução (novo na 2.2) | Implícita ("ajustar prompt") | Corpus de mecanismos medidos no OCB (dica/breaker/path/salvage/FsMini) + seed como dado versionado com hash de procedência (ADR-15…ADR-21) |
 | Relatórios | "Estatísticas no admin" | Subsistema próprio com catálogo R1–R30, facetas e De/Até (ADR-04, ADR-05) |
 | Bridge | Preservar contrato | `AI.Manager.Bridge` extraído: `/v1/responses`, `/v1/chat/completions`, hosts Api/Runner, harness/tails, anti-repeat/breaker; integração in-process no AI.Manager ainda pendente (ADR-13) |
 | Chat | Reaproveitar chat web | View portada sem backend; decisão de portar endpoints (ADR-08) |
@@ -92,11 +96,11 @@ AI.Manager/
   src/
     Rochas.AI.Manager.Domain/            # entidades, base, contratos, helpers
     Rochas.AI.Manager.Application/       # serviços, tools handlers, helpers de resposta
-    Rochas.AI.Manager.Infrastructure/    # AppDb, ReportService, PasswordHasher
+    Rochas.AI.Manager.Infrastructure/    # AppDb, ReportService, PasswordHasher, Seeding (seeders + assets), TestBench
     Rochas.AI.Manager.TrainingEngine/    # backend numérico + runner de processo + engine
     Rochas.AI.Manager.Core/              # SDK guarda-chuva (Domain+Application+Infrastructure+TrainingEngine)
     Rochas.AI.Manager.Api/               # REST, Swagger, proxy /v1 legado, tools
-    Rochas.AI.Manager.Web/               # MVC, views, seeders, /health
+    Rochas.AI.Manager.Web/               # MVC, views, /health (sem seeder: só chama Infrastructure no boot)
     Rochas.AI.Manager.Bridge/            # núcleo protocol-only: Responses↔chat, harness, anti-repeat, breaker
     Rochas.AI.Manager.Bridge.Contracts/  # DTOs/manifesto/opções (sem ASP.NET)
     Rochas.AI.Manager.Bridge.Client/     # HTTP/SSE tipado
@@ -104,10 +108,34 @@ AI.Manager/
     Rochas.AI.Manager.Bridge.Api/        # host REST+Swagger (/v1, /api/status, /api/contract)
     Rochas.AI.Manager.Bridge.Runner/     # host CLI serve/manifest (HttpListener)
   tests/
-    Rochas.AI.Manager.Tests/             # 97 PASS + 1 SKIP
-    Rochas.AI.Manager.Bridge.Tests/      # 102 PASS
-  docs/ai-manager/                       # arquitetura de camadas + guias + C4 editável/PNG
+    Rochas.AI.Manager.Tests/             # 105 PASS + 1 SKIP (2026-10-29)
+    Rochas.AI.Manager.Bridge.Tests/      # 144 PASS (2026-10-29)
+  Data/Seeds/                            # baselines versionados (war-baseline.json)
+  docs/ai-manager/                       # arquitetura v1/v2, guias, roadmap, pendências
+  docs/ai-manager/pdf/                   # PDFs gerados a partir dos .md (v2 e guia)
 ```
+
+**Organização de seeders e execução (rev. 2.2, decisão ADR-18):**
+
+```
+src/Rochas.AI.Manager.Infrastructure/
+  Seeding/                    # TODOS os seeders (única camada que conhece o banco)
+    HarnessBaselineSeeder.cs  # núcleo/tails/FsMini/notices/help desde harness-baseline.json
+    ToolHelpSeeder.cs
+    HintCatalogSeeder.cs
+    NoticeCatalogSeeder.cs
+    WorkflowSeeder.cs
+    HarnessSeeder.cs
+    BridgeFeatureSeeder.cs
+    Assets/                   # harness-*.md, harness-tools.json, hint catalog (fonte do seed)
+  TestBench/                  # TestBenchSeeder, WarBaselineReader
+  Data/AppDb.cs               # schema
+Data/Seeds/                   # baselines versionados (war-baseline.json, harness-baseline.json)
+```
+
+- **Web/Api não semeiam**: no boot chamam `Infrastructure` (`ISeederRunner`/`SeedAsync`) e seguem. View/controller nunca escreve catálogo de harness.
+- **Runner de cenário é console** (`Bridge.Runner`): executa manifesto, aplica assertions e grava `BridgeResult`; não referencia `Infrastructure`, não abre SQLite. O AI.Manager persiste a evidência depois.
+- **Exceção transitória:** os 5 seeders que hoje moram em `Web/Data` são dívida declarada (§6, violações) e migram para `Infrastructure/Seeding` na Fase 0.5.
 
 **Alvo incremental (não criar antes de precisar):**
 
@@ -129,11 +157,11 @@ src/Rochas.AI.Manager.Inference/         # clientes Ollama/llama-server (Fase 5)
 |---|---|---|
 | Domain | Entidades, base classes, enums, `ReportQuery/Result`, `EntityHashCode` | Dapper, SQLite, ASP.NET, TorchSharp |
 | Application | Serviços (regras), tools handlers, `ReasoningSanitizer`, `ToolCallCoercer` | SQL direto, acesso a `HttpContext`, `Process` fora de `ProcessRunner` |
-| Infrastructure | `AppDb` (schema), `ReportService`, hasher | Regra de negócio, decisão de fluxo |
+| Infrastructure | `AppDb` (schema), `ReportService`, hasher, **seeders + assets de seed** (`Seeding/`), TestBench (reader/seeder) | Regra de negócio, decisão de fluxo |
 | TrainingEngine | `TrainingEngine`, backend, `TrainingRunner` | Controllers, views, banco |
 | Bridge (core) | `ResponsesToChat`, `ChatToResponses`, `BridgeProxy`, `MainHarness`, `HarnessTails`, anti-repeat, breaker, `QwenStandard`, `ContextGuard` | ASP.NET, CLI, Swagger, `Domain`/`Application`, I/O de banco |
-| Bridge hosts | `Api` (REST+Swagger), `Runner` (serve/manifest), `Hosting` (flags/DI), `Client`, `Contracts` | Regra de negócio do AI.Manager |
-| Web / Api | Controllers finos, views, DI, seed, `/health` | Regra de negócio duplicada, SQL direto |
+| Bridge hosts | `Api` (REST+Swagger), `Runner` (serve/manifest/run, **console**), `Hosting` (flags/DI), `Client`, `Contracts` | Regra de negócio do AI.Manager |
+| Web / Api | Controllers finos, views, DI, `/health`; no boot apenas chamam o seeder da Infrastructure | Regra de negócio duplicada, SQL direto, **seeder próprio/tabela de harness** |
 
 **Violações atuais (corrigir na Fase 0/1):**
 
@@ -141,6 +169,7 @@ src/Rochas.AI.Manager.Inference/         # clientes Ollama/llama-server (Fase 5)
 - `ReportService` (Infrastructure) monta dicionários por reflexão e pagina em memória — aceitável como ponte, não como alvo.
 - `ApprovalsController` consulta repositórios diretamente em vez de serviços.
 - Contratos `Domain/Common/IRepository` e `IUnitOfWork` não são resolvidos no DI (código morto).
+- **Cinco seeders moram em `Web/Data`** (`HarnessSeeder`, `HarnessScenarioSeeder`, `ScenarioTemplateSeeder`, `BridgeFeatureSeeder`, `WorkflowSeeder`) com assets `harness-*.md`/`harness-tools.json` no mesmo diretório; `TestBenchSeeder` já está no lugar certo (`Infrastructure/TestBench`). Migração para `Infrastructure/Seeding` é pré-requisito da §9.7 (ADR-18).
 
 ---
 
@@ -267,6 +296,112 @@ O `Rochas.AI.Manager.Bridge` separa **base** e **cauda**:
 
 ---
 
+### 9.6 Panorama da indução — o que o OCB corrigiu entre 2026-10-26 e 2026-10-29
+
+O intervalo entre a rev. 2.1 e esta rev. 2.2 registra **127 commits** no doador, praticamente todos sobre a mesma pergunta: *por que o modelo de 4B não obedece ao harness?* A resposta medida foi consistente — **o defeito estava na indução, não no modelo**: dica que exibe literal inválido, enunciado que dita a mecânica, breaker que não enxerga falha de tool, path relativo confundido com `cd`, args truncados pelo próprio anti-repeat.
+
+### 9.6.1 Classes de defeito e o mecanismo que as fecha
+
+| Classe | Sintoma medido | Mecanismo (OCB) | Prova | Estado no `AI.Manager.Bridge` |
+|---|---|---|---|---|
+| Dica inválida | modelo copia `[for i in 1 .. n-1 do expr]` (forma que não compila) | regra "a dica ensina a forma CERTA e nunca exibe a errada"; `FsMini` descreve por sintoma, não por literal errado | `U-tails-path-simulation-rules` (exige a forma certa **e** ausência da errada), `fs-repair-probe.fsx` | ausente (sem `FsMini`) |
+| Reparo cego | 17 reparos idênticos em 30 turnos | `FsSyntaxRepair.Suggest` despacha pelo **primeiro** código FS, mede na fonte e, na 3ª repetição, manda reescrever com `write` | `U-fs-repair-*` (comprehension, lambda `\`, `ref`, `: nome:` no retorno, `else let`, aridade, uso antes da declaração) | ausente |
+| Breaker cego a tool | loop `edit`+`dotnet build` sem nudge nenhum | `ToolsAntiRepeat.FailureMarkers` cobre `exit [1-9]`, `error fs/cs/msb/fsi\d+`, traceback, `undefined reference`; streak por **alvo mais frequente na janela** (sucesso intercalado não zera); nudge aceita 2 alvos | `U-breaker-compiler-loop`, `U-breaker-interleaved-loop`, `U-breaker-failure-markers`, `U-breaker-ignores-distinct-targets` | parcial (`FailureMarkers` ainda na forma `exited with code [1-9]`, sem os códigos FS/CS) |
+| Path relativo | `edit` com `random_file.txt` após `cd temp_dir` | `WorkspaceGuard.Locate` (BFS depth 4, 3 achados) devolve "existe em: `<rel>` — use esse path" | `U-tools-path-hint` | ausente |
+| Args truncados | `window=512` cortou `edit` no meio (`salvage-args-rejected`) | janela **própria** dos args (1024, `--anti-repeat-args-window`) com buffers separados no stream | `U-antirepeat-args-window`, `verify-antirepeat-args-window.py` | ausente (janela única) |
+| Aviso pobre | 13 turnos de `JSON invalido/truncado` sem exemplo | `ToolCallRepair` = cabeçalho + 3 exemplos válidos (parseados no pin) + `ToolHelp.For` (fonte única do schema) | `U-toolcall-salvage-notice` | ausente |
+| Custo do salvage | nudge de salvage debitava turno do orçamento | `ToolCallRepair.IsSalvageNotice` fora do orçamento | `U-toolcall-salvage-notice` | ausente |
+| Enunciado-receita | teste media obediência (ditava `MapGet`, `useEffect`, DI exata) | enunciado = problema + contrato observável; mecânica no harness/tool-help; assert estrutural quando o nome é ambíguo | `E-ent-*` (5 PASS/1 FAIL → estabilizado) | a replicar no seed (§9.7) |
+| Plano em vez de código | “Plano de Implementação … aguardando confirmação” em pedido textual | `DefaultBehaviorNoTools` define a frase de fechamento como **entregável final**, com proibição explícita de “plano de arquitetura” e de elisão (`// ...`) | `E-ent-crud-product`, `E-ent-dashboard`, `E-ent-redis` | ausente (só uma cauda `Behavior`) |
+| Tools como texto | request sem `tools` devolvia `{"tools":[{"type":"shell"...` truncado | `Compose(..., hasTools:false)` troca a cauda e remove “TOOLS PRIMEIRO” | `U-main-harness-tools-tail` | ausente (`Compose` não tem `hasTools`) |
+| Orçamento irreal | `E-ent-redis` falhava com 14 passos e passava com 24 | teto **medido** (24) e `calls=` na mensagem de diagnóstico | `E-ent-redis` PASS 178,3 s (`calls=19`) | a replicar no loop JSON |
+| Diagnóstico por restart | contador acumulado e painel com enunciado antigo | `POST /api/diag/reset?probe=1&files=1&panel=1`; reset **uma vez por bateria**, `step_start` não zera | `U-diag-reset`, `U-diag-reset-panel` | ausente |
+| Painel mudo | step só aparecia depois de pronto | `step_start` publicado como `RUN` | `U-circuit-publish-run` | ausente (sem driver no Bridge) |
+| Fail-fast parcial | `--only E-ent` seguia gastando GPU após FAIL | `TestContext.StopOnFail` + guard de rebuild (sha512) obrigatório com stop-on-fail | `U-circuit-battery-stop/resume` | ausente (sem runner de cenário) |
+| Portão de fluxo | teste “bridge” podia passar sem MainHarness/tools tail | `GET /api/test/last-system` registra o system final (`fsmini`, `tail_scope`, `harness_tails`) — **portão único ainda pendente** (P1 do OCB) | pendente (`PENDINGS.md` P1) | ausente |
+
+### 9.6.2 Três lições que viram regra de arquitetura
+
+1. **Mecânica no Core, texto no dado.** Contagem de falha, BFS, parse e seleção de ramo são código; tudo o que o modelo **lê** é dado versionado. O caso `ToolRetryEscalation` (criado para o loop de `oldString` e revertido por duplicar `ToolsAntiRepeat`) é a prova de que a duplicação de mecanismo é bug de processo.
+2. **Medir antes de ditar.** O teto de passos, a janela de args e a regra de F# só entraram depois de medição com evidência (log do turno, `calls=`, probe de compilação). Nenhum número foi escolhido por intuição.
+3. **Variância cognitiva não é regressão.** PASS isolado ≠ estabilidade: o mesmo binário pode falhar por escolha do modelo. Por isso o aceite é **3 verdes consecutivos por nível** com o mesmo hash de manifesto e rebuild entre rodadas.
+
+### 9.7 Indução como dados — seeders e baseline de harness
+
+**Decisão (ADR-17):** toda dinâmica corretiva que hoje vive como literal de código no OCB (`MainHarness`, `HarnessTails`, `FsMini`, `ToolHelp`, `ToolCallRepair`, `BridgeNotice`, `NudgeNotice`/`TripNotice`, dicas do `FsSyntaxRepair`) e todo enunciado hardcoded em teste (`E2EBelts*`, `E2EMission*`, `E2EEnt*`, `E-Science*`, `E-Front*`) devem existir no AI.Manager **como dado versionado**, com procedência (`source_commit` + `sha256`) e semeadura idempotente.
+
+O algoritmo continua em código (§5.3 do guia): contar falhas, medir aridade, despachar por código FS, aplicar orçamento. **O que o modelo lê é dado.**
+
+### 9.7.1 Modelo de dados
+
+Reusa o que já existe e acrescenta o corpus de indução:
+
+| Tabela / contrato | Papel | Chave natural |
+|---|---|---|
+| `harness_profiles` → `harness_profile_versions` → `harness_attachments` | perfil do produto; anexos `Nucleo`, `Behavior`, `ToolsUsage`, `FsMini` (`kind`, `role`, `language`, `content`, `char_count`) | `(profile, version)` |
+| `harness_assets` (nova) | corpus bruto do doador: `kind`, `role`, `language`, `text`, `sha256`, `source_commit`, `source_path` | `(source_commit, sha256)` |
+| `harness_notices` (nova) | avisos/nudges/trip/salvage: `kind`, `tag`, `text`, `sha256` (tag `BRIDGE (...)` e `[BRIDGE-BREAKER]` em um lugar só) | `(kind, tag)` |
+| `tool_help` (nova) | help curado por tool + schema de referência (`tool`, `text`, `sha256`) | `tool` |
+| `hint_catalog` (nova) | dicas de reparo: `fs_code`, `symptom` (regex), `hint`, `probe` (`ok`/`pending`), `source_commit` | `(fs_code, symptom)` |
+| `test_scenarios` (existe) | enunciados como dado (prompt, tools, loop, assertions) | `(plan_id, key)` |
+| `runner_profiles` (existe) | Q4 gate / Q3 espelho, `context`, `max_tokens` | `runner_id` |
+| `BridgeBaseline` (existe) | envelope de manifesto + runners, `source_commit` | `(source_commit, manifest_hash)` |
+| `BridgeHarnessBaseline` (novo em `Bridge.Contracts`) | envelope do corpus de indução para transporte ao executor (o executor **não lê banco**) | `(source_commit, harness_hash)` |
+
+### 9.7.2 Seeders (idempotentes, com hash conferido)
+
+**Localização (ADR-18):** todos em `src/Rochas.AI.Manager.Infrastructure/Seeding/` (assets em `Seeding/Assets/`); `TestBenchSeeder` fica em `Infrastructure/TestBench/`. **Nenhum seeder em `Web/Data`** — host só chama `SeedAsync()` no boot. O executor de cenário é console (`Bridge.Runner`) e não lê banco.
+
+| Seeder | Onde | Entrada | Regra |
+|---|---|---|---|
+| `HarnessBaselineSeeder` | `Infrastructure/Seeding` | `Data/Seeds/harness-baseline.json` | cria anexos `Draft`; nunca sobrescreve versão `Approved`; hash divergente reprova com mensagem explícita |
+| `ToolHelpSeeder` | `Infrastructure/Seeding` | seção `toolHelp` do baseline | `ToolHelp.For` do Bridge passa a ler daqui; literal vira fallback |
+| `HintCatalogSeeder` | `Infrastructure/Seeding` | seção `hints` do baseline | dica só entra com `probe=ok` (compila em `fs-repair-probe`); sem probe, fica `pending` e não é servida |
+| `NoticeCatalogSeeder` | `Infrastructure/Seeding` | seção `notices` | tag e prefixo em um lugar só; consumidores (bridge, runner, Web) chamam o catálogo |
+| `TestBenchSeeder` (existe) | `Infrastructure/TestBench` | `Data/Seeds/war-baseline.json` | `(source_commit, manifest_hash)`; belts como `test_scenarios`; Q4 gate/Q3 espelho |
+| `HarnessSeeder`/`HarnessScenarioSeeder`/`ScenarioTemplateSeeder`/`BridgeFeatureSeeder`/`WorkflowSeeder` (existem em `Web/Data`) | **migrar** para `Infrastructure/Seeding` | assets atuais | Fase 0.5; sem mudança de conteúdo no mesmo commit |
+
+**Formato do baseline de indução** (arquivo próprio para não contaminar o hash do manifesto):
+
+```jsonc
+{
+  "schemaVersion": "1.0",
+  "sourceCommit": "3d8bd58",
+  "sourceRepository": "rocha83/OpenCodeBridge",
+  "harness": {
+    "nucleo":   { "text": "...", "sha256": "..." },
+    "behavior": { "withTools": { "text": "...", "sha256": "..." },
+                  "withoutTools": { "text": "...", "sha256": "..." } },
+    "tools":    { "text": "...", "sha256": "..." },
+    "fsMini":   { "text": "...", "sha256": "..." }
+  },
+  "toolHelp": [ { "tool": "write", "text": "...", "sha256": "..." } ],
+  "notices":  [ { "kind": "breaker", "tag": "BRIDGE-BREAKER", "text": "...", "sha256": "..." } ],
+  "hints":    [ { "fsCode": "FS0010", "symptom": "Unexpected symbol ':' in binding",
+                  "hint": "...", "probe": "ok" } ]
+}
+```
+
+### 9.7.3 Consumo em runtime
+
+1. Host (`Bridge.Api`/`Runner`/`AI.Manager.Api`) carrega o baseline uma vez no boot (arquivo ou DB), valida hash e publica `BridgeOptions.HarnessTexts`.
+2. `MainHarness`/`HarnessTails`/`FsSyntaxRepair`/`ToolHelp`/`ToolCallRepair` **consomem** o texto recebido; o literal do Core permanece apenas como fallback declarado (log `harness_source=fallback`).
+3. Seletores de dados, não de código: `FsMini` só com `language=fs`; cauda de tools só com `hasTools`; `Behavior` escolhe variante com/sem tools; `NudgeNotice`/`TripNotice` com `{N}` interpolado no ponto único.
+4. O **executor de cenário** recebe o baseline no manifesto (JSON) e não acessa banco — mantém a decisão de F1/F2 (executor sem lock de SQLite).
+
+### 9.7.4 Gates da indução como dados
+
+| Gate | Critério | Consequência |
+|---|---|---|
+| G-I1 Paridade de texto | `sha256(texto semeado) == sha256(literal do OCB em source_commit)` para núcleo/tails/FsMini/help/notices | divergência é **erro** de seed, não warning |
+| G-I2 Dica válida | toda `hint_catalog` com `probe=ok` (compila) e sem literal inválido copyável no texto | dica `pending` não é servida |
+| G-I3 Enunciado sem receita | lint bloqueante: proibido `MapGet/MapPost`, `useEffect`, nome exato de DI, “não use edit”, “grave PRIMEIRO” | seed reprovado na importação |
+| G-I4 Orçamento medido | `loop_json.steps` preenchido com medição (`calls=`) e margem; 0 = “não medido” e não entra no gate | cenário sem orçamento não promove release |
+| G-I5 Drift | relatório R31 compara `source_commit` do seed com o HEAD do doador | drift > 0 aparece no painel; absorção é decisão humana |
+| G-I6 Portão de fluxo | request em raia bridge exige `main_harness`, `harness_tails` e `tools_tail` (quando `tools`) no system final | teste sem fluxo completo é **refutado** por instrumentação (P1 do OCB promovido) |
+
+---
+
 ## 10. Bridge e proxy (contrato real)
 
 ### 10.1 Caminho legado do AI.Manager (transitório)
@@ -319,6 +454,40 @@ Projetos `net10.0` e dependências reais:
 - Toda resposta não-stream com `tool_calls` coercíveis é registrada; toda falha de upstream gera run com `result_code` real.
 - `/v1/responses` e `/v1/chat/completions` têm testes de contrato no `Bridge.Tests` e no host.
 - O core não referencia ASP.NET/CLI/Swagger; hosts são substituíveis.
+
+### 10.5 Matriz de paridade `OCB Core` → `AI.Manager.Bridge` (2026-10-29)
+
+Comparação direta de arquivos entre `../OpenCodeBridge/Rochas.OpenCodeBridge.Core` (HEAD `3d8bd58`) e `src/Rochas.AI.Manager.Bridge`:
+
+| Artefato do OCB | Papel | Estado no Bridge | Ação |
+|---|---|---|---|
+| `MainHarness.cs` | base do caminho gerido | **portado** (144 vs 143 linhas) | manter; consumir texto do seed |
+| `HarnessTails.cs` | caudas + FsMini + `hasTools` | **parcial** (57 vs 119 linhas): falta `DefaultBehaviorNoTools`, `FsMini`, `Compose(..., hasTools)` | portar com texto vindo do baseline (§9.7) |
+| `ToolsAntiRepeat.cs` | breaker/anti-repeat | **parcial** (343 vs 434 linhas): `FailureMarkers` na forma morta, sem alvo-mais-frequente, sem 2 alvos | completar mecânica + testes |
+| `AntiRepeat.cs` / `ContentAntiRepeat.cs` | repetição de conteúdo | portado | manter janela própria de args |
+| `ToolArgsParser.cs` / `ToolCoercion.cs` / `TextGrammar.cs` | parsing/coerção | portado | manter |
+| `ToolCallRepair.cs` | salvage (nudge + exemplos + help) | **ausente** | portar mecânica; texto no catálogo |
+| `ToolHelp.cs` | help curado por tool (fonte única) | **ausente** | portar; popular por `ToolHelpSeeder` |
+| `BridgeNotice.cs` | formato único do aviso | **ausente** (prefixo espalhado) | portar; tag no catálogo |
+| `FsSyntaxRepair.cs` | reparo F# medido na fonte | **ausente** | portar (517 linhas; maior lacuna) |
+| `FsMini` (dentro de `HarnessTails`) | mini tutorial F# (1 linha por código FS) | **ausente** | entra como anexo `FsMini` semeado |
+| `StackPreflight.cs` | preflight do stack (bridge/upstream/modelo) | **ausente** | portar para o runner de cenário |
+| `RoleProfiles.cs` | temperatura/thinking por role | **ausente** no Bridge (perfis no produto) | seed de `ModelBinding`/`Agent` |
+| `Metrics.cs` / `BridgeMetrics` | contadores e reset | parcial (`/api/metrics`, sem `/api/diag/reset`) | expor reset por bateria |
+| `Tools/*` (catalog, guard, inspector, runner, handlers) | execução de tools | **portado** (F1) | manter |
+| `ToolCatalog.cs` | shapes chat/Responses | **portado** | manter |
+| Flow (driver/circuito/executor) | execução de cenário | **parcial** (só `ManifestCommandResolver`) | Fase F3 do roadmap |
+
+**Regra da matriz:** linha "ausente/parcial" é backlog, não licença para reimplementar no consumidor. O porte é sempre `mecânica no Core + texto no baseline + pin em C#`.
+
+### 10.6 Orçamento de passos, fail-fast e portão de fluxo
+
+- **Orçamento de passos é dado do cenário** (`loop_json.steps`), medido (`calls=`) e nunca ajustado para "fazer passar". Teto de referência medido no OCB: 24 (`E-ent-redis`, faixa da suíte 16–28).
+- **Fail-fast em toda rodada**: primeiro FAIL aborta; `--no-stop-on-fail` é medição consciente, não padrão.
+- **Guard de rebuild** obrigatório com fail-fast: PASS só com binário do hash corrente (`sha512`).
+- **Reset antes de restart**: `POST /api/diag/reset?probe=1&files=1&panel=1` zera métricas, sonda, arquivos, enunciado e painel; restart fica para binário/pool. Granularidade: uma vez por bateria (nunca por step).
+- **Portão de fluxo (P1 do OCB promovido a gate)**: ao fim de qualquer execução em raia bridge, o registro do **request efetivamente enviado** precisa atestar `main_harness`, `harness_tails` (scope ≠ off) e `tools_tail` quando houver `tools`; ausência refuta o teste por instrumentação, com dump do que existe. O `GET /api/test/last-system` do OCB é a base; no AI.Manager o registro vive no run de cenário (`test_evidence`).
+- **Nunca criar bridge paralela** em porta inventada para "bancada": usa-se a unit alvo (`:4124` gate, `:4125` espelho, `:4126` CPU forçada), reiniciada no início da bateria.
 
 ---
 
@@ -452,12 +621,12 @@ As 30 definições propostas (R1–R30), com facetas por FK, eixos temporais e m
 |---|---|---|
 | Unitário | AccuracyEvaluator, EntityHashCode, helpers, linter, workflow | Cobrir invariantes de agregado e máquinas de estado |
 | Integração | SQLite em `SequentialCollection` | Repositórios, transações, seed idempotente |
-| Contrato | `Bridge.Tests`: 102 PASS (protocolo, harness, anti-repeat, breaker, manifesto) | Golden files de `/v1/responses` e `/v1/chat/completions` no host |
+| Contrato | `Bridge.Tests`: 144 PASS (protocolo, harness, anti-repeat, breaker, tools, manifesto) | Golden files de `/v1/responses` e `/v1/chat/completions` no host |
 | Web/API | — | `WebApplicationFactory` para rotas e exportação |
 | Relatórios | 4 casos | Golden CSV/XLSX por definição; De/Até inclusivo/exclusivo |
 | Regressão de harness | — | Preview byte-idêntico ao request (hash) |
 
-**Estado em 2026-10-25:** `dotnet build Rochas.AI.Manager.slnx -c Release` = 0 erros / 106 warnings; `Bridge.Tests` = 102 PASS; `AI.Manager.Tests` = 97 PASS + 1 SKIP.
+**Estado em 2026-10-29 (medido nesta revisão):** `dotnet build Rochas.AI.Manager.slnx -c Release` = **0 erros / 113 avisos** (NU1902/NU1903 de `System.IO.Packaging`/`System.Security.Cryptography.Pkcs` no projeto de testes; CS9113/CS8625/CS0219); `Bridge.Tests` = **144 PASS**; `AI.Manager.Tests` = **105 PASS + 1 SKIP**. O doador `OpenCodeBridge` reporta `units` = **139 PASS / 0 FAIL / SKIP=6** no commit `3d8bd58`.
 
 Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende de GPU é marcado e roda em job separado.
 
@@ -479,6 +648,13 @@ Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende d
 - **ADR-12 — Schema:** scripts versionados + `schema_version`; proibido `ALTER TABLE` em `try/catch`.
 - **ADR-13 — Bridge extraível:** núcleo `Rochas.AI.Manager.Bridge` sem ASP.NET/CLI/Swagger; `Api`/`Runner` são hosts; `Contracts`/`Client`/`Hosting` completam o pacote. OpenCodeBridge é doador transitório; Q4 é gate e Q3 é espelho.
 - **ADR-14 — Harness no Bridge:** `MainHarness` base + `HarnessTails` coexistentes; gate por cliente (`User-Agent`), nunca por sufixo de modelo; `TailScope` managed/all/off; `ForClient` isola a decisão por requisição.
+- **ADR-15 — Indução é corpus medido:** toda dica/aviso/enunciado nasce de sintoma medido (log, `calls=`, probe de compilação) e obedece "a dica ensina a forma CERTA e nunca exibe a errada". Dica sem `probe=ok` não é servida.
+- **ADR-16 — Breaker enxerga falha de tool:** `FailureMarkers` cobre `exit [1-9]`, `error fs/cs/msb/fsi\d+`, traceback e `undefined reference`; a contagem é por **alvo mais frequente na janela** (sucesso intercalado não zera), com nudge em até 2 alvos (soft 3 / hard 6). Consumidor de `/api/tools/execute` chama o mesmo controle — não cria escalada paralela.
+- **ADR-17 — Indução como dados:** núcleo, tails (com/sem tools), `FsMini`, help por tool, notices e dicas vivem em baseline versionado (`source_commit` + `sha256`), semeados em idempotência; o Core consome e o literal é apenas fallback declarado. Hash divergente reprova.
+- **ADR-18 — Seeder é Infrastructure; executor é console:** todo seeder e asset mora em `Infrastructure/Seeding` (banco é dela); `Web`/`Api` só chamam `SeedAsync()` no boot; o runner de cenário é `Bridge.Runner` (console), sem banco. Seeders em `Web/Data` são dívida a migrar (Fase 0.5).
+- **ADR-19 — Diagnóstico por reset:** contadores, sonda, arquivos e painel zeram por `POST /api/diag/reset` (`?probe=1&files=1&panel=1`), uma vez por bateria; `step_start` não zera. Restart só para binário/pool.
+- **ADR-20 — Orçamento e fail-fast medidos:** teto de passos é dado do cenário, medido com `calls=` e margem (referência 24); primeiro FAIL aborta a rodada; guard de rebuild (`sha512`) é obrigatório com stop-on-fail; aceite exige 3 gates verdes consecutivos por nível.
+- **ADR-21 — Portão de fluxo:** execução em raia bridge só é válida se o request efetivamente enviado atesta `main_harness`, `harness_tails` (scope ≠ off) e `tools_tail` quando há `tools`; ausência refuta o teste por instrumentação (P1 do OCB promovido a gate).
 
 ---
 
@@ -495,6 +671,11 @@ Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende d
 | Divergência harness nativo × custom | Média | Médio | Resultado muda sem mudança de versão | Diff + Test Bench |
 | Duplicação proxy legado × Bridge | Alta | Médio | Dois caminhos com comportamento diferente | Cutover por flag + testes de contrato; remover o legado |
 | Deriva OCB → AI.Manager.Bridge | Média | Alto | Correção só no doador | Sync com diff + gate Q4; ADR-13 |
+| Texto de indução em dois lugares (código e seed) | Alta | Alto | Comportamento muda sem mudar hash | ADR-17: paridade por `sha256` + fallback declarado |
+| Seeder em camada errada (Web) | Média | Médio | Boot da Web criando catálogo; API sem dados | ADR-18: migrar para `Infrastructure/Seeding` + teste de boot |
+| Dica inválida servida ao modelo | Média | Alto | Mesmo erro repetido em loop | ADR-15: `probe=ok` obrigatório e pin de ausência do literal errado |
+| Breaker cego a falha de tool/compilador | Alta | Alto | Loop de GPU sem nudge/trip | ADR-16: marcadores + alvo-mais-frequente + teste de bateria |
+| Orçamento de passos irreal | Média | Médio | FAIL de mecânica lido como regressão de modelo | ADR-20: teto medido (`calls=`) e `steps` como dado |
 
 ---
 
@@ -503,6 +684,10 @@ Regra: bug corrigido = teste que falha antes e passa depois. Teste que depende d
 **Fase 0 — Verdade e segurança (1 sprint)**
 Renomear backend para o que ele é; decidir Python (ADR-07); chave JWT e seed configuráveis; menu com Reports/Approvals; corrigir MIME do PDF; corrigir `approver_id` nas transições.
 *Aceite:* build verde; nenhum segredo no código; página de relatórios acessível pelo menu.
+
+**Fase 0.5 — Seeders na Infrastructure (2–3 dias)**
+Mover os 5 seeders de `Web/Data` (+ assets `harness-*.md`/`harness-tools.json`) para `Infrastructure/Seeding`; expor `SeedAsync()` na Infrastructure e chamá-lo no boot de Web/Api; nenhuma mudança de conteúdo no mesmo commit.
+*Aceite:* `grep -rn "Seeder" src/Rochas.AI.Manager.Web` vazio; seed roda igual (teste de boot idempotente); Web/Api só chamam `SeedAsync()`.
 
 **Fase 1 — Relatórios confiáveis (1–2 sprints)**
 `ReportDefinition`, registry, filtros De/Até, facetas de FK, paginação em SQL, catálogo R1–R13 + R29/R30; export com MIME correto; testes golden.
@@ -519,6 +704,15 @@ Fila em `training_jobs`, claim atômico, hosted service, cancelamento cooperativ
 **Fase 3.5 — Bridge e cutover (em andamento)**
 `AI.Manager.Bridge` extraído (Core/Contracts/Client/Hosting/Api/Runner), `/v1/responses`, harness base+tails e anti-repeat/breaker. Falta consumir `Bridge.Client` no AI.Manager, desligar o proxy legado e congelar o doador.
 *Aceite:* request do AI.Manager atravessa `Bridge.Client`→`Bridge.Api` com contrato e evidência; Q4 verde.
+
+**Fase 3.6 — Indução como dados (1–2 sprints, prioridade da rev. 2.2)**
+Porte do corpus de indução do OCB (`3d8bd58`) para o `AI.Manager.Bridge`, com texto vindo do baseline:
+1. `harness-baseline.json` (`nucleo`, `behavior` com/sem tools, `tools`, `fsMini`, `toolHelp`, `notices`, `hints`) + `HarnessBaselineSeeder`/`ToolHelpSeeder`/`HintCatalogSeeder`/`NoticeCatalogSeeder` em `Infrastructure/Seeding`.
+2. Mecânica: `HarnessTails.Compose(..., hasTools)`, `FsSyntaxRepair` (ramo por código FS medido na fonte + escalada de dica repetida), `ToolCallRepair` (nudge + 3 exemplos + help), `BridgeNotice` (tag única), `FailureMarkers` estendidos + alvo-mais-frequente, janela de args 1024, `WorkspaceGuard.Locate`, `StackPreflight`.
+3. `POST /api/diag/reset` (`probe`/`files`/`panel`) + política de granularidade por bateria.
+4. Portão de fluxo (ADR-21) no run de cenário, com `test_evidence` atestando harness/tails/tools.
+5. Lint de enunciado no seed (G-I3) e relatório R31 de drift contra o HEAD do doador.
+*Aceite:* paridade `sha256` de todos os textos com `3d8bd58` (G-I1); `hint_catalog` com `probe=ok` (G-I2); 1 cenário F# (`mission-algo-fs`) e 1 de tools (`tools-full`) verdes no Q4 com evidência; `Bridge.Tests` com os pins novos; nenhum literal de indução duplicado (`grep` gate).
 
 **Fase 4 — Motor numérico (2–4 sprints)**
 G2 (TorchSharp na GPU), loader Safetensors, forward textual de um modelo, LoRA, resume.
@@ -547,6 +741,10 @@ Integração do `Bridge.Client` no AI.Manager (in-process/HTTP), cutover e remo�
 10. Build e suíte verdes no CI antes de qualquer release.
 11. `AI.Manager.Bridge` core não referencia ASP.NET/CLI/Swagger; `Api`/`Runner` são hosts substituíveis.
 12. Harness no Bridge é decidido pelo cliente (`User-Agent`), com base+tails e `TailScope`; Q4 é gate e Q3 é espelho.
+13. Todo texto de indução (núcleo, tails, FsMini, help, notices, dicas) é **dado versionado** com `sha256` e `source_commit`; literal no código é só fallback declarado.
+14. Nenhum seeder mora em `Web`/`Api`; seed é `Infrastructure/Seeding` e o runner de cenário é console sem acesso a banco.
+15. Todo enunciado semeado passa no lint G-I3 (sem mecânica ditada) e todo cenário declara orçamento de passos medido.
+16. Execução em raia bridge sem `main_harness`/`harness_tails`/`tools_tail` no request é **refutada** por instrumentação, não por assertiva semântica.
 
 ---
 
@@ -568,7 +766,10 @@ Integração do `Bridge.Client` no AI.Manager (in-process/HTTP), cutover e remo�
 | Harness | `src/Rochas.AI.Manager.Domain/Harness/*` + `Application/Services/Harness*` |
 | Workflow | `src/Rochas.AI.Manager.Domain/Entities/Management/*` + `Application/Services/{TrainingWorkflowService,WorkFlowBasedService}.cs` |
 | Treino | `src/Rochas.AI.Manager.TrainingEngine/*` |
-| Seed | `src/Rochas.AI.Manager.Web/Data/*` |
+| Seed | `src/Rochas.AI.Manager.Infrastructure/Seeding/*` (alvo; hoje 5 seeders ainda em `Web/Data`) |
+| Baseline de indução | `Data/Seeds/harness-baseline.json` + `Bridge.Contracts/BridgeHarnessBaseline.cs` |
+| Corpus de indução (referência do doador) | `../OpenCodeBridge/Rochas.OpenCodeBridge.Core/{HarnessTails,FsSyntaxRepair,ToolCallRepair,ToolHelp,BridgeNotice}.cs` |
+| TestBench | `Data/Seeds/war-baseline.json` + `Infrastructure/TestBench/*` + `Application/TestBench/ManifestBuilder.cs` |
 | UI | `src/Rochas.AI.Manager.Web/Views/**` + `Controllers/**` |
 
 ### 21.2 Glossário
@@ -585,6 +786,15 @@ Integração do `Bridge.Client` no AI.Manager (in-process/HTTP), cutover e remo�
 - **TailScope:** escopo das caudas (`managed`/`all`/`off`).
 - **Gate Q4 / espelho Q3:** instância estável de aceite (`:4124`) e espelho pós-green (`:4125`).
 - **Doador:** `OpenCodeBridge` congelado, consumido via `Bridge.Client` até o cutover.
+- **Indução:** tudo o que o modelo lê (núcleo, tails, FsMini, help, avisos, dicas) e que molda o comportamento sem ser código.
+- **Baseline de indução:** arquivo versionado com o corpus de indução + `source_commit` + `sha256` por item.
+- **FsMini:** mini tutorial de F# injetado só na fase F# (uma linha por código `FSxxxx`, sintoma em prosa + forma correta).
+- **FsSyntaxRepair:** reparo que mede o erro do compilador na fonte e devolve `ERRADO → CERTO` (ou silêncio).
+- **Salvage:** resgate de tool call com args inválidos — remove a assistant quebrada e devolve um aviso com exemplos válidos.
+- **Nudge / Trip:** aviso após N falhas no mesmo alvo (soft 3) e encerramento do turno sem chamar o modelo (hard 6).
+- **Budget (orçamento de passos):** teto medido de tool calls por cenário (`loop.steps`), com `calls=` na evidência.
+- **Portão de fluxo:** verificação de que o request em raia bridge realmente carregou `main_harness` + tails (+ tools tail).
+- **Drift:** distância entre o `source_commit` do seed e o HEAD do doador; relatório R31.
 
 ### 21.3 Change log
 
@@ -594,3 +804,4 @@ Integração do `Bridge.Client` no AI.Manager (in-process/HTTP), cutover e remo�
 | v1.3 | 2026-10-20 | Seção 32 (as-built) e nota de revisão |
 | v2.0 | 2026-10-20 | Consolidação do as-built, subsistema de relatórios, ADRs, roadmap e critérios de aceitação |
 | v2.1 | 2026-10-25 | Porte do `AI.Manager.Bridge` (Core/Contracts/Client/Hosting/Api/Runner), harness base+tails, `TailScope`, discriminador por cliente; C4 regenerado |
+| v2.2 | 2026-10-29 | Panorama da indução do OCB (127 commits), matriz de paridade OCB Core → Bridge (§10.5), indução como dados e seeders (§9.7), seeders na Infrastructure e runner console (ADR-18), ADR-15…ADR-21, Fase 0.5 e Fase 3.6, critérios 13–16; PDF regenerado |
